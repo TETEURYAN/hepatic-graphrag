@@ -1,0 +1,10 @@
+[project]
+name = "anamnese-ml"
+version = "0.1.0"
+description = "Extração e análise longitondinal de pacientes com GraphRag"
+authors = [{ name = "Matheus Ryan da Silva Nascimento" }]
+dependencies = [
+    "pandas",
+    "numpy",
+    "spacy>=3.8.7",
+]
