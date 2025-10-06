@@ -47,7 +47,8 @@ def main():
             logs.append(f"- Index {row['index']}, Nome: {row['nome_detectado']}")
             logs.append(f"  Entidades restantes: {row['entidades_restantes']}")
             logs.append(f"  Regex sensível: {row['regex_sensivel']}")
-            logs.append(f"  Descrição anonimizada: {row['descricao_anonimizada'][:200]}...")
+            # logs.append(f"  Descrição anonimizada: {row['descricao_anonimizada'][:200]}...")
+            logs.append(f"  Palavra encontrada anonimizada: {row['palavra_encontrada']}...")
     else:
         logs.append("\n✅ Nenhum registro com nome presente detectado.")
 
