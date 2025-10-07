@@ -11,7 +11,7 @@ install:
 
 # Executa o projeto
 run:
-	python main.py
+	uv run python main.py
 
 # Remove o ambiente virtual e arquivos temporários
 clean:
