@@ -18,9 +18,6 @@ class AnonymizationValidator:
     def __init__(self, cleaner: EntityCleaner):
         self.cleaner = cleaner
 
-    # -------------------------
-    # 🔤 Normalização
-    # -------------------------
     def normalize(self, text: str) -> str:
         """Remove acentos, pontuação e transforma em minúsculas."""
         if not isinstance(text, str):
@@ -32,9 +29,6 @@ class AnonymizationValidator:
         )
         return re.sub(r'[^a-z0-9\s]', '', text)
 
-    # -------------------------
-    # 🔍 Busca fuzzy parcial (com retorno da palavra encontrada)
-    # -------------------------
     def fuzzy_match(self, nome: str, texto: str, threshold: float = 0.85):
         """
         Verifica se o nome (ou parte dele) aparece no texto com variações leves.
@@ -65,18 +59,13 @@ class AnonymizationValidator:
 
         return False, None
 
-    # -------------------------
-    # ⚠️ Padrões sensíveis
-    # -------------------------
     def contains_sensitive_patterns(self, text: str) -> bool:
         """Verifica padrões como CPF, data ou telefone."""
         if not isinstance(text, str):
             return False
         return any(re.search(p, text) for p in self.SENSITIVE_REGEX)
 
-    # -------------------------
-    # 🧩 Validação principal
-    # -------------------------
+
     def validate(self, df: pd.DataFrame) -> pd.DataFrame:
         """Retorna linhas com nome ou fragmento de nome detectado."""
         if "nome" not in df.columns or "descricao_anonimizada" not in df.columns:
