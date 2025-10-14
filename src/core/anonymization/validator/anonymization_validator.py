@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import unicodedata
 from difflib import SequenceMatcher
-from src.nlp.entity_cleaner import EntityCleaner
+from src.core.anonymization.nlp.entity_cleaner import EntityCleaner
 
 
 class AnonymizationValidator:
