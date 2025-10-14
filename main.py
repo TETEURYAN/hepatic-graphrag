@@ -1,60 +1,43 @@
-from src.data_loader import load_all_csvs
-from src.nlp.entity_cleaner import EntityCleaner
-from src.explorer.explorer import DatasetExplorer
-from src.validator.anonymization_validator import AnonymizationValidator
-from src.report.report_generator import ReportGenerator
-import pandas as pd
+from src.core.anonymization.facade import AnonymizationFeature
+from src.core.anonymization.exceptions import AnonymizationError
 
 def main():
-    logs = []
-
-    logs.append("-> Carregando datasets de anamnese...")
-    datasets = load_all_csvs(concat=False)
-
-    explorer = DatasetExplorer()
-    dataset_names = list(datasets.keys())
-
-    logs.append("\n-> Datasets disponíveis:")
-    for i, name in enumerate(dataset_names, start=1):
-        logs.append(f"   {i}. {name}")
-
-    choice = input("\n-> Escolha o número do dataset que deseja analisar: ")
+    print(" Iniciando módulo de anonimização...")
+    feature = AnonymizationFeature()
 
     try:
-        idx = int(choice) - 1
-        if idx < 0 or idx >= len(dataset_names):
-            raise ValueError
-        selected_name = dataset_names[idx]
-    except ValueError:
-        logs.append("! Opção inválida, saindo...")
-        print("\n".join(logs))
+        datasets = feature.load_datasets()
+    except Exception as e:
+        print(f"Erro ao carregar datasets: {e}")
         return
 
-    df = datasets[selected_name]
-    if isinstance(df, pd.Series):
-        df = df.to_frame()
+    names = list(datasets.keys())
+    print("\nDatasets disponíveis:")
+    for i, name in enumerate(names, 1):
+        print(f"   {i}. {name}")
 
-    explorer.show_info(df, selected_name)
+    choice = input("\nEscolha o número do dataset: ")
+    try:
+        idx = int(choice) - 1
+        selected = names[idx]
+    except Exception:
+        print("Escolha inválida.")
+        return
 
-    logs.append("\n🔍 Validando anonimização...")
-    cleaner = EntityCleaner()
-    validator = AnonymizationValidator(cleaner)
-    problemas = validator.validate(df)
+    print(f"\nAnalisando '{selected}'...")
+    try:
+        examples = feature.validate_anonymization(selected)
+        print(f"Linhas com problemas: {len(examples)}")
+        if not examples.empty:
+            print("\nExemplos de problemas:")
+            print(examples.to_string(index=False))
+        else:
+            print("Nenhum problema encontrado.")
 
-    if not problemas.empty:
-        logs.append(f"\n⚠️ {len(problemas)} registros possuem nome presente na descrição anonimizadas:")
-        for _, row in problemas.iterrows():
-            logs.append(f"- Index {row['index']}, Nome: {row['nome_detectado']}")
-            logs.append(f"  Entidades restantes: {row['entidades_restantes']}")
-            logs.append(f"  Regex sensível: {row['regex_sensivel']}")
-            # logs.append(f"  Descrição anonimizada: {row['descricao_anonimizada'][:200]}...")
-            logs.append(f"  Palavra encontrada anonimizada: {row['palavra_encontrada']}...")
-    else:
-        logs.append("\n✅ Nenhum registro com nome presente detectado.")
+    except AnonymizationError as e:
+        print(f"\nErro de anonimização: {e}")
+    except Exception as e:
+        print(f"\nErro inesperado: {e}")
 
-    report_path = ReportGenerator.save_logs(logs, f"relatorio_{selected_name}")
-    print("\n".join(logs))
-    print(f"\n📑 Relatório salvo em: {report_path}")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
