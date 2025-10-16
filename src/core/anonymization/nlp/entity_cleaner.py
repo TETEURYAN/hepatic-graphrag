@@ -1,4 +1,3 @@
-# src/nlp/entity_cleaner.py
 import spacy
 import pandas as pd
 from typing import List
