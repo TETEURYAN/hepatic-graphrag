@@ -1,0 +1,8 @@
+Extraia todas as entidades relevantes do texto, classificando-as em:
+- pessoa
+- organização
+- local
+- evento
+
+Forneça uma lista simples no formato:
+[NOME_ENTIDADE] - [TIPO_ENTIDADE]

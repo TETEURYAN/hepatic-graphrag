@@ -1,0 +1,86 @@
+encoding_model: cl100k_base
+skip_workflows: []
+
+llm:
+  api_key: ${GRAPHRAG_API_KEY}          # variável de ambiente com a chave
+  type: openai_chat                     # para modelos locais via Ollama, manter openai_chat
+  model: mistral                         # modelo LLM local escolhido
+  model_supports_json: true              # recomendado
+  api_base: http://localhost:11434/v1    # endpoint local Ollama
+
+parallelization:
+  stagger: 0.3
+  # num_threads: 50  # threads paralelas se necessário
+
+async_mode: threaded  # ou asyncio
+
+embeddings:
+  async_mode: threaded
+  llm:
+    api_key: ${GRAPHRAG_API_KEY}       # variável de ambiente
+    type: openai_embedding             # embedding via Ollama
+    model: nomic-embed-text            # modelo de embedding local
+    api_base: http://localhost:11434/api
+
+chunks:
+  size: 300
+  overlap: 100
+  group_by_columns: [id]
+
+input:
+  type: file
+  file_type: text
+  base_dir: "input"
+  file_encoding: utf-8
+  file_pattern: ".*\\.txt$"
+
+cache:
+  type: file
+  base_dir: "cache"
+
+storage:
+  type: file
+  base_dir: "output/${timestamp}/artifacts"
+
+reporting:
+  type: file
+  base_dir: "output/${timestamp}/reports"
+
+entity_extraction:
+  prompt: "prompts/entity_extraction.txt"
+  entity_types: [organization, person, geo, event]
+  max_gleanings: 0
+
+summarize_descriptions:
+  prompt: "prompts/summarize_descriptions.txt"
+  max_length: 500
+
+claim_extraction:
+  prompt: "prompts/claim_extraction.txt"
+  description: "Any claims or facts that could be relevant to information discovery."
+  max_gleanings: 0
+
+community_report:
+  prompt: "prompts/community_report.txt"
+  max_length: 2000
+  max_input_length: 8000
+
+cluster_graph:
+  max_cluster_size: 10
+
+embed_graph:
+  enabled: false
+
+umap:
+  enabled: false
+
+snapshots:
+  graphml: yes
+  raw_entities: yes
+  top_level_nodes: yes
+
+local_search:
+  # configurações opcionais de busca local
+
+global_search:
+  # configurações opcionais de busca global
