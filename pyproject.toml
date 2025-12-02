@@ -9,4 +9,6 @@ dependencies = [
     "spacy>=3.8.7",
     "azure-identity>=1.25.1",
     "azure-storage-blob>=12.27.0",
+    "graphrag>=2.7.0",
+    "plotly>=6.5.0",
 ]
