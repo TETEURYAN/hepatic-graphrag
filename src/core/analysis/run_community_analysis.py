@@ -6,8 +6,8 @@ para extrair insights dos relatórios gerados por LLM.
 """
 
 from pathlib import Path
-from facade import GraphAnalysisFeature
-from community_analyzer import CommunityReportsAnalyzer
+from core.analysis.models.facade import GraphAnalysisFeature
+from core.analysis.models.community_analyzer import CommunityReportsAnalyzer
 
 
 def main():

@@ -6,7 +6,7 @@ para extrair insights dos nós com mais arestas.
 """
 
 from pathlib import Path
-from facade import GraphAnalysisFeature
+from core.analysis.models.facade import GraphAnalysisFeature
 
 
 def main():
