@@ -6,8 +6,8 @@ para extrair insights sobre evolução clínica baseado nos relacionamentos.
 """
 
 from pathlib import Path
-from facade import GraphAnalysisFeature
-from person_analyzer import PersonAnalyzer
+from core.analysis.models.facade import GraphAnalysisFeature
+from core.analysis.models.person_analyzer import PersonAnalyzer
 
 
 def main():
