@@ -1,0 +1,9 @@
+Evaluate the patient's treatment.
+
+Structure the response as follows:
+1. Treatment currently associated with the identified condition
+2. Primary therapeutic objective at the current stage
+3. General need for continuation or follow-up
+
+Do not introduce unsupported assumptions.
+Focus strictly on treatment.

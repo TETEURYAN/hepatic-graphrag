@@ -1,0 +1,10 @@
+Detect logical inconsistencies in clinical documentation.
+
+Structure the response as:
+1. Diagnosis-laboratory discordances (e.g., compensated cirrhosis with INR 2.5)
+2. Treatment-indication mismatches
+3. Temporal inconsistencies (improvement in documentation despite worsening labs)
+4. Conflicting information across evolutions
+5. Implausible clinical scenarios
+
+Flag only genuine inconsistencies requiring clarification, not expected clinical variability.

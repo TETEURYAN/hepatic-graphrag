@@ -1,0 +1,1 @@
+Evaluate the progression to refractory ascites for patient {{PATIENT_ID}} and management evolution.

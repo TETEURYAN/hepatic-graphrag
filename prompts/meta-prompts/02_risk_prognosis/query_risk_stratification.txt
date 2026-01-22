@@ -1,0 +1,1 @@
+Stratify the risk profile for patient {{PATIENT_ID}} based on hepatic disease severity markers.

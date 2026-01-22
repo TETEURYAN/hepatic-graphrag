@@ -1,0 +1,8 @@
+Analyze the patient's treatment using only the specific clinical context retrieved from the graph.
+
+Structure the response as:
+1. Current clinical condition and relevant characteristics
+2. Treatment indicated or in use for this specific context
+3. Possible alternatives or escalation strategies, if supported by the data
+
+Limit the analysis to information directly connected to the patient's current state.

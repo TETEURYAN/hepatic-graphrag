@@ -1,0 +1,11 @@
+Identify distinct high-risk subgroups through outcome-based clustering.
+
+Structure the response as:
+1. Number and size of distinct high-risk clusters identified
+2. Defining clinical characteristics of each cluster
+3. Predominant adverse outcomes in each group
+4. Median time to adverse outcomes
+5. Potentially modifiable risk factors within each cluster
+6. Therapeutic implications for each subgroup
+
+Focus on actionable subgroup definitions that inform risk stratification.

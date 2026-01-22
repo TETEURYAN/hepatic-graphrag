@@ -1,0 +1,10 @@
+Evaluate the evolution toward refractory ascites and therapeutic adaptations.
+
+Structure the response as:
+1. Initial ascites management (diuretics, dosages, sodium restriction)
+2. Evidence of diuretic resistance (lack of response, electrolyte complications)
+3. Escalation to invasive procedures (paracentesis frequency, TIPS evaluation)
+4. Complications related to ascites management (SBP, HRS, hyponatremia)
+5. Current management status and transplant evaluation timing
+
+Document the therapeutic escalation pathway and decision points.
