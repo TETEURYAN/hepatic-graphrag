@@ -1,0 +1,11 @@
+Monitor HCC surveillance adherence and findings longitudinally.
+
+Structure the response as:
+1. Surveillance protocol compliance (imaging frequency, AFP monitoring)
+2. Chronological summary of imaging findings and evolution
+3. AFP trend analysis and correlation with imaging
+4. Suspicious lesions under monitoring (LI-RADS classification if available)
+5. Diagnostic or therapeutic interventions performed
+6. Current surveillance status and next recommended evaluation
+
+Track both adherence to screening protocols and positive findings.

@@ -1,0 +1,12 @@
+Assess liver transplant candidacy comprehensively.
+
+Structure the response as:
+1. Current indication severity (MELD-Na score, exception points, clinical urgency)
+2. Absolute contraindications present or ruled out
+3. Relative contraindications requiring optimization
+4. Evaluation milestones completed (cardiac, pulmonary, oncological, psychosocial)
+5. Listing status and position if applicable
+6. Active medical optimization for candidacy improvement
+
+Map the complete transplant evaluation pathway and current positioning.
+If transplant not discussed, state clearly and assess if evaluation would be appropriate.

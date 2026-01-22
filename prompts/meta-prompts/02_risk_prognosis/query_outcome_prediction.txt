@@ -1,0 +1,1 @@
+Predict probable clinical outcomes for patient {{PATIENT_ID}} based on similar historical trajectories.

@@ -1,0 +1,11 @@
+Provide an integrated clinical synthesis.
+
+Structure as:
+1. Current clinical status (severity, complications, functional status)
+2. Trajectory analysis (progression pattern, rate, inflection points)
+3. Prognostic assessment based on similar cases
+4. Treatment optimization opportunities
+5. Surveillance and monitoring priorities
+6. Decision-critical next steps
+
+Integrate local, temporal, and global perspectives into actionable insights.

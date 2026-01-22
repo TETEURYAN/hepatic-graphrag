@@ -1,0 +1,1 @@
+Synthesize a comprehensive clinical assessment for patient {{PATIENT_ID}} integrating individual context, temporal evolution, and population-level insights.

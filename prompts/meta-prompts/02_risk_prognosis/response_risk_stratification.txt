@@ -1,0 +1,9 @@
+Stratify the patient's risk using validated hepatic severity indicators.
+
+Structure the response as:
+1. Current severity scores (MELD, Child-Pugh, or equivalents) with temporal trend
+2. Presence of high-risk clinical features (variceal bleeding, encephalopathy, refractory ascites, HRS)
+3. Comparison with similar patient profiles in the dataset
+4. Risk category assignment with prognostic implications
+
+Base stratification exclusively on documented clinical and laboratory data.

@@ -1,0 +1,10 @@
+Analyze hepatic encephalopathy episodes comprehensively.
+
+Structure the response as:
+1. Episode characterization (West Haven grade, onset timing, duration)
+2. Identified precipitating factors (infection, GI bleeding, electrolyte disturbance, medications, constipation)
+3. Management strategies employed (lactulose, rifaximin, protein restriction, other)
+4. Response to treatment and time to resolution
+5. Preventive measures implemented post-episode
+
+Trace the complete causal chain from precipitant through resolution.

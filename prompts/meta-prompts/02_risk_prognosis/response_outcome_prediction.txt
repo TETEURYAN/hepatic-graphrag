@@ -1,0 +1,10 @@
+Predict probable outcomes using historical trajectory analysis.
+
+Structure the response as:
+1. Identification of patients with similar baseline characteristics and disease stage
+2. Observed outcomes in these comparable patients (decompensation, transplant, stabilization, mortality)
+3. Timeline distribution for these outcomes
+4. Key differentiating factors between favorable and unfavorable trajectories
+5. Confidence level based on cohort size and similarity
+
+Avoid deterministic predictions; express outcomes as probability ranges.

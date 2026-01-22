@@ -1,0 +1,1 @@
+Assess the treatment for patient {{PATIENT_ID}} based on the current clinical context.

@@ -1,0 +1,10 @@
+Identify and weigh etiological factors contributing to hepatic disease.
+
+Structure the response as:
+1. Primary etiological diagnosis with supporting evidence
+2. Contributing secondary factors (alcohol, metabolic syndrome, viral co-infection, autoimmune)
+3. Medications or exposures with hepatotoxic potential
+4. Genetic or familial predisposition if documented
+5. Relative contribution assessment when multiple factors present
+
+Distinguish between established causes and contributing risk factors.

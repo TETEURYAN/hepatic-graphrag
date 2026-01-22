@@ -1,0 +1,10 @@
+Benchmark individual management against cohort standards.
+
+Structure the response as:
+1. Patient's disease stage and complexity profile
+2. Therapeutic interventions employed vs. standard protocols in similar cases
+3. Timing of key interventions compared to cohort patterns
+4. Outcome metrics relative to comparable patients
+5. Notable deviations from standard care with contextual justification if present
+
+Identify both adherence to best practices and justified individualization.

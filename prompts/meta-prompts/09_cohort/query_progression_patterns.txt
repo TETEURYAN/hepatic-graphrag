@@ -1,0 +1,1 @@
+Analyze the most common progression patterns from compensated to decompensated cirrhosis across the cohort.

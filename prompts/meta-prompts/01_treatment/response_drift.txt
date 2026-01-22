@@ -1,0 +1,9 @@
+Evaluate the patient's treatment trajectory over time using the available graph data.
+
+Structure the response as:
+1. Initial treatment and baseline clinical context
+2. Evidence of response, stability, or progression
+3. Therapeutic modifications performed or indicated
+4. Current treatment status and implications for ongoing care
+
+Prioritize how treatment was adapted in response to clinical evolution.
