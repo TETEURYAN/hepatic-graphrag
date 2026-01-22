@@ -1,0 +1,8 @@
+Assess the patient's treatment from a global clinical perspective.
+
+Structure the response to include:
+1. The patient's current therapeutic strategy
+2. Alignment with commonly accepted treatment approaches
+3. Potential gaps or deviations in management, if identifiable
+
+Situate the individual treatment within broader clinical practice.

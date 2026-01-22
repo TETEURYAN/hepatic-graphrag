@@ -1,0 +1,10 @@
+Identify systemic gaps in evidence-based care delivery.
+
+Structure the response as:
+1. Guideline-recommended interventions with suboptimal adoption rates
+2. Patient subgroups most affected by therapeutic gaps
+3. Preventive strategies underutilized (vaccinations, beta-blockers, prophylactic antibiotics)
+4. Screening and surveillance deficiencies
+5. Potential barriers to optimal care (access, contraindications, documentation)
+
+Quantify gaps where possible and prioritize by clinical impact.

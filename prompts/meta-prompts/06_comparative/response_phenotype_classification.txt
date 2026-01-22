@@ -1,0 +1,10 @@
+Classify the patient into distinct clinical phenotypes identified in the dataset.
+
+Structure the response as:
+1. Primary phenotype assignment with defining characteristics
+2. Key features aligning with this phenotype cluster
+3. Distinguishing features from other common phenotypes
+4. Typical trajectory and outcomes associated with this phenotype
+5. Therapeutic implications specific to this phenotype
+
+Use data-driven phenotype discovery, not traditional textbook categories.

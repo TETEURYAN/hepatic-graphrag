@@ -1,0 +1,1 @@
+Analyze hepatic encephalopathy episodes for patient {{PATIENT_ID}}, including precipitants and management.

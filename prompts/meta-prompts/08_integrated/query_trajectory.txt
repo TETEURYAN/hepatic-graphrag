@@ -1,0 +1,1 @@
+Analyze the complete clinical trajectory of patient {{PATIENT_ID}}.

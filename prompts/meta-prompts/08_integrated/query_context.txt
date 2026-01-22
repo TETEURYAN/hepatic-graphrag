@@ -1,0 +1,1 @@
+Provide comprehensive clinical context for patient {{PATIENT_ID}}.

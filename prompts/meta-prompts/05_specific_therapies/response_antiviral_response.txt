@@ -1,0 +1,12 @@
+Evaluate antiviral treatment response across virological and biochemical dimensions.
+
+Structure the response as:
+1. Baseline viral load and liver biochemistry
+2. Treatment regimen details (agents, duration, adherence)
+3. Virological response timeline (RVR, EVR, SVR12/24 for HCV; viral suppression for HBV)
+4. Biochemical improvement (ALT normalization, albumin increase)
+5. Adverse effects or treatment modifications
+6. Post-treatment durability and relapse monitoring
+
+Distinguish early viral response from sustained cure and clinical improvement.
+If no antiviral therapy documented, state clearly and briefly.

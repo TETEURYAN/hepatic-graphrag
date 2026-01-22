@@ -1,0 +1,10 @@
+Identify and characterize progression patterns.
+
+Structure the response as:
+1. Top 5-7 most frequent progression pathways
+2. Average timeline for each pathway
+3. Common precipitants or triggers for decompensation
+4. Modifiable factors in high-frequency pathways
+5. Prognostic differences between pathways
+
+Provide actionable insights for early intervention.

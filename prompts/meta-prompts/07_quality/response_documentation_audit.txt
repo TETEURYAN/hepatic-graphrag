@@ -1,0 +1,11 @@
+Audit documentation completeness against cirrhosis care standards.
+
+Structure the response as:
+1. Essential clinical parameters documented vs. missing (Child-Pugh components, MELD-Na)
+2. Surveillance protocols adherence (HCC screening, variceal screening, bone density)
+3. Complication assessments documented (ascites, encephalopathy, nutrition)
+4. Medication reconciliation completeness
+5. Gaps with highest clinical impact
+6. Documentation quality trends over time
+
+Prioritize gaps that impact clinical decision-making or risk stratification.
