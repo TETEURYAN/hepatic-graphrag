@@ -1,0 +1,10 @@
+Detect early indicators of impending decompensation through temporal pattern analysis.
+
+Structure the response as:
+1. Recent laboratory trend analysis (bilirubin, albumin, INR, creatinine, sodium)
+2. New or worsening clinical manifestations in recent evolutions
+3. Comparison with pre-decompensation patterns observed in similar patients
+4. Timeline of concerning changes (last 1, 3, 6 months)
+5. Urgency assessment and monitoring recommendations
+
+Focus on actionable early warning signals, not established decompensation.

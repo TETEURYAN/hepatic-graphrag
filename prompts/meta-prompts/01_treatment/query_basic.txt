@@ -1,0 +1,1 @@
+Evaluate the treatment for patient {{PATIENT_ID}} based on the identified hepatic condition.

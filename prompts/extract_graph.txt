@@ -1,121 +1,240 @@
 
 -Goal-
-Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
- 
+Given a text document that is potentially relevant to this activity, first identify all entities needed from the text in order to capture the information and ideas in the text.
+Next, report all relationships among the identified entities.
+
 -Steps-
 1. Identify all entities. For each identified entity, extract the following information:
 - entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{entity_types}]
+- entity_type: Suggest several labels or categories for the entity. The categories should not be specific, but should be as general as possible.
 - entity_description: Comprehensive description of the entity's attributes and activities
 Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
- 
+
 2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
 For each pair of related entities, extract the following information:
 - source_entity: name of the source entity, as identified in step 1
 - target_entity: name of the target entity, as identified in step 1
 - relationship_description: explanation as to why you think the source entity and the target entity are related to each other
 - relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
- 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
- 
-4. When finished, output {completion_delimiter}
- 
-######################
+Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+
+3. Return output in Portuguese as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+
+4. If you have to translate into Portuguese, just translate the descriptions, nothing else!
+
+5. When finished, output {completion_delimiter}.
+
 -Examples-
 ######################
+
 Example 1:
-Entity_types: ORGANIZATION,PERSON
-Text:
-The Verdantis's Central Institution is scheduled to meet on Monday and Thursday, with the institution planning to release its latest policy decision on Thursday at 1:30 p.m. PDT, followed by a press conference where Central Institution Chair Martin Smith will take questions. Investors expect the Market Strategy Committee to hold its benchmark interest rate steady in a range of 3.5%-3.75%.
-######################
-Output:
-("entity"{tuple_delimiter}CENTRAL INSTITUTION{tuple_delimiter}ORGANIZATION{tuple_delimiter}The Central Institution is the Federal Reserve of Verdantis, which is setting interest rates on Monday and Thursday)
-{record_delimiter}
-("entity"{tuple_delimiter}MARTIN SMITH{tuple_delimiter}PERSON{tuple_delimiter}Martin Smith is the chair of the Central Institution)
-{record_delimiter}
-("entity"{tuple_delimiter}MARKET STRATEGY COMMITTEE{tuple_delimiter}ORGANIZATION{tuple_delimiter}The Central Institution committee makes key decisions about interest rates and the growth of Verdantis's money supply)
-{record_delimiter}
-("relationship"{tuple_delimiter}MARTIN SMITH{tuple_delimiter}CENTRAL INSTITUTION{tuple_delimiter}Martin Smith is the Chair of the Central Institution and will answer questions at a press conference{tuple_delimiter}9)
-{completion_delimiter}
 
-######################
+text:
+ HDA: Relata ter realizado exames de sangue de rotina, que evidenciaram elevação de transaminases. Assintomática. Relata esporadicamente edema em membros inferiores. 
+
+# AP:
+- DM2 há 2 anos. Faz uso de Gliclazida MR 30 mg 2 cp 12/12h , Glifage 500 mg 2cp 12/12h 
+- HAS. Faz uso de Losartana 50 mg 12/12 h e HCTZ 25 mg 1xd. 
+- Dislipidemia. Fez uso de Sinvastina 20 mg e suspendeu por conta própria por dor muscular. 
+- Nega alergias. 
+- Cirurgia: Colescistectomia há 2 anos. 
+- Nega etilismo e tabagismo. 
+- Nega tatuagem ou piercing; 
+- Nega transfusão sanguínea; 
+- Sedentária. 
+- Alimentação: Rica em carboidratos simples. 
+- Baixa ingesta hídrica.
+- Hábito intestinal adequado - Diária, Bristol 
+------------------------
+output:
+("entity"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}EXAME{tuple_delimiter}Exame de elastografia realizado em 11.09.2023 que identificou esteatose hepática de grau moderado e fibrose em estágio F0/F1)
+{record_delimiter}
+("entity"{tuple_delimiter}FÍGADO{tuple_delimiter}ÓRGÃO{tuple_delimiter}Órgão avaliado na elastografia, apresentando sinais de esteatose de grau moderado e fibrose em estágio F0/F1)
+{record_delimiter}
+("entity"{tuple_delimiter}ESTEATOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Acúmulo de gordura no fígado, identificado como de grau moderado no exame de elastografia)
+{record_delimiter}
+("entity"{tuple_delimiter}FIBROSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Estadiamento de fibrose hepática identificado como F0/F1 no exame de elastografia)
+{record_delimiter}
+("entity"{tuple_delimiter}CRITÉRIOS PELO PCDT{tuple_delimiter}PROTOCOLO{tuple_delimiter}Protocolo clínico e diretrizes terapêuticas que não foram preenchidos pelo paciente para tratamento)
+{record_delimiter}
+("entity"{tuple_delimiter}MEV{tuple_delimiter}PROCEDIMENTO{tuple_delimiter}Monitorização eletrocardiográfica vetorial, orientada como parte do acompanhamento do paciente)
+{record_delimiter}
+("entity"{tuple_delimiter}SERVIÇO DE NUTRIÇÃO{tuple_delimiter}SERVIÇO{tuple_delimiter}Serviço para o qual o paciente foi encaminhado para acompanhamento nutricional)
+{record_delimiter}
+("entity"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença hepática crônica de etiologia mista, incluindo esquistossomose e alcoólica)
+{record_delimiter}
+("entity"{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença parasitária que contribui para a hepatopatia crônica do paciente)
+{record_delimiter}
+("entity"{tuple_delimiter}ALCOÓLICA{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Etiologia alcoólica da hepatopatia crônica, com ingestão esporádica de aguardente e abstinência há 6 anos)
+{record_delimiter}
+("entity"{tuple_delimiter}INGESTÃO ALCOÓLICA{tuple_delimiter}HÁBITO{tuple_delimiter}Hábito de consumo de aguardente, com abstinência há 6 anos)
+{record_delimiter}
+("entity"{tuple_delimiter}TABAGISMO{tuple_delimiter}HÁBITO{tuple_delimiter}Hábito de fumar dos 10 aos 20 anos, com abstinência há 19 anos)
+{record_delimiter}
+("entity"{tuple_delimiter}TUBERCULOSE PULMONAR{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença tratada aos 18 anos, parte do histórico médico do paciente)
+{record_delimiter}
+("relationship"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}FÍGADO{tuple_delimiter}A elastografia avaliou o fígado e identificou esteatose e fibrose{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}ESTEATOSE{tuple_delimiter}O fígado apresenta sinais de esteatose de grau moderado{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}FIBROSE{tuple_delimiter}O fígado apresenta fibrose em estágio F0/F1{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}CRITÉRIOS PELO PCDT{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}O paciente não preenche os critérios do PCDT para tratamento da hepatopatia crônica{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}A esquistossomose é uma das etiologias da hepatopatia crônica{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ALCOÓLICA{tuple_delimiter}A etiologia alcoólica contribui para a hepatopatia crônica{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}INGESTÃO ALCOÓLICA{tuple_delimiter}ALCOÓLICA{tuple_delimiter}A ingestão alcoólica esporádica está relacionada à etiologia alcoólica da hepatopatia{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}TABAGISMO{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}O tabagismo pode estar relacionado à hepatopatia crônica, embora o paciente esteja em abstinência{tuple_delimiter}5)
+{record_delimiter}
+("relationship"{tuple_delimiter}TUBERCULOSE PULMONAR{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}A tuberculose pulmonar tratada faz parte do histórico médico do paciente com hepatopatia crônica{tuple_delimiter}4)
+{completion_delimiter}
+#############################
+
+
 Example 2:
-Entity_types: ORGANIZATION
-Text:
-TechGlobal's (TG) stock skyrocketed in its opening day on the Global Exchange Thursday. But IPO experts warn that the semiconductor corporation's debut on the public markets isn't indicative of how other newly listed companies may perform.
 
-TechGlobal, a formerly public company, was taken private by Vision Holdings in 2014. The well-established chip designer says it powers 85% of premium smartphones.
-######################
-Output:
-("entity"{tuple_delimiter}TECHGLOBAL{tuple_delimiter}ORGANIZATION{tuple_delimiter}TechGlobal is a stock now listed on the Global Exchange which powers 85% of premium smartphones)
+text:
+ricionista; 
+- Solicito US hepático; 
+- Solicito novo laboratório, incluindo função hepática, sorologias virais;",MEDICINA,5302,HEPATOLOGIA,2023-07-20 16:35:36,AMBULATORIO HOSPITAL DIA,ANAMNESE,ROSINEIDE ROBERTO DE OLIVEIRA FRANCA ,"# ID: Mulher, 45 naos, Casada, 3 filhos, Evangélica, Natural e Procedente de Maceió-LA
+ 
+# Motivo do Encaminhamento: Elevação de transaminases 
+
+# HDA: Relata ter realizado exames de sangue de rotina, que evidenciaram elevação de transaminases. Assintomática. Relata esporadicamente edema em membros inferiores. 
+
+# AP:
+- DM2 há 2 anos. Faz uso de Gliclazida MR 30 mg 2 cp 12/12h , Glifage 500 mg 2cp 12/12h 
+- HAS. Faz uso de Losartana 50 mg 12/12 h e HCT
+------------------------
+output:
+("entity"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}EXAME{tuple_delimiter}Exame de elastografia realizado em 11.09.2023 que identificou esteatose hepática de grau moderado e fibrose em estágio F0/F1)
 {record_delimiter}
-("entity"{tuple_delimiter}VISION HOLDINGS{tuple_delimiter}ORGANIZATION{tuple_delimiter}Vision Holdings is a firm that previously owned TechGlobal)
+("entity"{tuple_delimiter}FÍGADO{tuple_delimiter}ÓRGÃO{tuple_delimiter}Órgão avaliado na elastografia, apresentando sinais de esteatose de grau moderado e fibrose em estágio F0/F1)
 {record_delimiter}
-("relationship"{tuple_delimiter}TECHGLOBAL{tuple_delimiter}VISION HOLDINGS{tuple_delimiter}Vision Holdings formerly owned TechGlobal from 2014 until present{tuple_delimiter}5)
+("entity"{tuple_delimiter}ESTEATOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Acúmulo de gordura no fígado, identificada como de grau moderado no exame de elastografia)
+{record_delimiter}
+("entity"{tuple_delimiter}FIBROSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Estadiamento de fibrose hepática identificado como F0/F1 no exame de elastografia)
+{record_delimiter}
+("entity"{tuple_delimiter}PACIENTE{tuple_delimiter}PERSON{tuple_delimiter}Indivíduo portador de hepatopatia crônica de etiologia mista, com histórico de esquistossomose e consumo alcoólico)
+{record_delimiter}
+("entity"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença hepática crônica de etiologia mista, envolvendo esquistossomose e consumo alcoólico)
+{record_delimiter}
+("entity"{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença parasitária que contribui para a etiologia da hepatopatia crônica do paciente)
+{record_delimiter}
+("entity"{tuple_delimiter}ALCOOLISMO{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Consumo alcoólico esporádico, com histórico de ingestão de aguardente, em abstinência há 6 anos)
+{record_delimiter}
+("entity"{tuple_delimiter}TABAGISMO{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Histórico de tabagismo, com abstinência há 19 anos, tendo fumado dos 10 aos 20 anos)
+{record_delimiter}
+("entity"{tuple_delimiter}TUBERCULOSE PULMONAR{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença tratada aos 18 anos, parte do histórico médico do paciente)
+{record_delimiter}
+("entity"{tuple_delimiter}SERVIÇO DE NUTRIÇÃO{tuple_delimiter}SERVIÇO{tuple_delimiter}Serviço para o qual o paciente foi encaminhado para acompanhamento nutricional)
+{record_delimiter}
+("relationship"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}FÍGADO{tuple_delimiter}A elastografia avaliou o fígado e identificou esteatose e fibrose{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}ESTEATOSE{tuple_delimiter}O fígado apresenta sinais de esteatose de grau moderado{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}FIBROSE{tuple_delimiter}O fígado apresenta fibrose em estágio F0/F1{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}PACIENTE{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}O paciente é portador de hepatopatia crônica de etiologia mista{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}A esquistossomose é uma das causas da hepatopatia crônica{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ALCOOLISMO{tuple_delimiter}O consumo alcoólico é uma das causas da hepatopatia crônica{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}PACIENTE{tuple_delimiter}ALCOOLISMO{tuple_delimiter}O paciente tem histórico de ingestão alcoólica esporádica{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}PACIENTE{tuple_delimiter}TABAGISMO{tuple_delimiter}O paciente tem histórico de tabagismo{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}PACIENTE{tuple_delimiter}TUBERCULOSE PULMONAR{tuple_delimiter}O paciente teve tuberculose pulmonar tratada aos 18 anos{tuple_delimiter}6)
+{record_delimiter}
+("relationship"{tuple_delimiter}PACIENTE{tuple_delimiter}SERVIÇO DE NUTRIÇÃO{tuple_delimiter}O paciente foi encaminhado ao serviço de nutrição para acompanhamento{tuple_delimiter}6)
 {completion_delimiter}
+#############################
 
-######################
+
 Example 3:
-Entity_types: ORGANIZATION,GEO,PERSON
-Text:
-Five Aurelians jailed for 8 years in Firuzabad and widely regarded as hostages are on their way home to Aurelia.
 
-The swap orchestrated by Quintara was finalized when $8bn of Firuzi funds were transferred to financial institutions in Krohaara, the capital of Quintara.
+text:
+-vigilia.
+Evacuação e diurese de aspecto habitual, sem alterações.
+Nega evacuação com sangue, nega hematemese.
+Independente para atividades básicas da vida diária.
 
-The exchange initiated in Firuzabad's capital, Tiruzia, led to the four men and one woman, who are also Firuzi nationals, boarding a chartered flight to Krohaara.
+História médica pregressa
+Nega HAS
+Nega DM2
+Nega alergias
+Nega cirurgias
+Medicações em uso: omeprazol, buscopam
+Vacinação atualizada - SIC
 
-They were welcomed by senior Aurelian officials and are now on their way to Aurelia's capital, Cashion.
+Hábitos de vida
+Ex-tabagista: parou há 3 anos, 3-4 pacotes de fumo por semana + carteiras de cigarro desde os 9 anos
+Ex- etilismo: bebia junto do fumo, parou há 20 anos
+Desconhece ter tido esquistossomose 
+Faz uso de chás de hortelã e cebolinha
+Dieta sem restrições
 
-The Aurelians include 39-year-old businessman Samuel Namara, who has been held in Tiruzia's Alhamia Prison, as well as journalist Durke Bataglani, 59, and environmentalist Meggie Tazbah, 53, who also holds Bratinas nationality.
-######################
-Output:
-("entity"{tuple_delimiter}FIRUZABAD{tuple_delimiter}GEO{tuple_delimiter}Firuzabad held Aurelians as hostages)
+História familiar
+Nega história de hepatopatias
+
+Exame fisico
+Ectoscopia: BEG, LOTE, AAA, HIPOCORADO, HIDRATADO
+AR: MV+AHT, SRA
+ACV: RCR, 
+------------------------
+output:
+("entity"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}EXAME{tuple_delimiter}Exame de elastografia realizado em 11.09.2023 que identificou esteatose hepática de grau moderado e fibrose em estágio F0/F1)
 {record_delimiter}
-("entity"{tuple_delimiter}AURELIA{tuple_delimiter}GEO{tuple_delimiter}Country seeking to release hostages)
+("entity"{tuple_delimiter}FÍGADO{tuple_delimiter}ÓRGÃO{tuple_delimiter}Órgão avaliado na elastografia, apresentando sinais de esteatose de grau moderado e fibrose em estágio F0/F1)
 {record_delimiter}
-("entity"{tuple_delimiter}QUINTARA{tuple_delimiter}GEO{tuple_delimiter}Country that negotiated a swap of money in exchange for hostages)
+("entity"{tuple_delimiter}ESTEATOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Acúmulo de gordura no fígado, identificada como de grau moderado no exame de elastografia)
 {record_delimiter}
+("entity"{tuple_delimiter}FIBROSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Estadiamento de fibrose hepática identificado como F0/F1 no exame de elastografia)
 {record_delimiter}
-("entity"{tuple_delimiter}TIRUZIA{tuple_delimiter}GEO{tuple_delimiter}Capital of Firuzabad where the Aurelians were being held)
+("entity"{tuple_delimiter}CRITÉRIOS PELO PCDT{tuple_delimiter}PROTOCOLO{tuple_delimiter}Protocolo clínico e diretrizes terapêuticas que não foram preenchidos pelo paciente para tratamento)
 {record_delimiter}
-("entity"{tuple_delimiter}KROHAARA{tuple_delimiter}GEO{tuple_delimiter}Capital city in Quintara)
+("entity"{tuple_delimiter}MEV{tuple_delimiter}PROCEDIMENTO{tuple_delimiter}Monitorização eletrocardiográfica vetorial, orientada para acompanhamento do paciente)
 {record_delimiter}
-("entity"{tuple_delimiter}CASHION{tuple_delimiter}GEO{tuple_delimiter}Capital city in Aurelia)
+("entity"{tuple_delimiter}SERVIÇO DE NUTRIÇÃO{tuple_delimiter}SERVIÇO{tuple_delimiter}Serviço para o qual o paciente foi encaminhado para acompanhamento nutricional)
 {record_delimiter}
-("entity"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}PERSON{tuple_delimiter}Aurelian who spent time in Tiruzia's Alhamia Prison)
+("entity"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença hepática crônica de etiologia mista, incluindo esquistossomose e alcoólica)
 {record_delimiter}
-("entity"{tuple_delimiter}ALHAMIA PRISON{tuple_delimiter}GEO{tuple_delimiter}Prison in Tiruzia)
+("entity"{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença parasitária que contribui para a hepatopatia crônica do paciente)
 {record_delimiter}
-("entity"{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}PERSON{tuple_delimiter}Aurelian journalist who was held hostage)
+("entity"{tuple_delimiter}ALCOÓLICA{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Etiologia alcoólica da hepatopatia crônica, com ingestão esporádica de aguardente e abstinência há 6 anos)
 {record_delimiter}
-("entity"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}PERSON{tuple_delimiter}Bratinas national and environmentalist who was held hostage)
+("entity"{tuple_delimiter}INGESTÃO ALCOÓLICA{tuple_delimiter}HÁBITO{tuple_delimiter}Hábito de ingestão de aguardente, com abstinência há 6 anos)
 {record_delimiter}
-("relationship"{tuple_delimiter}FIRUZABAD{tuple_delimiter}AURELIA{tuple_delimiter}Firuzabad negotiated a hostage exchange with Aurelia{tuple_delimiter}2)
+("entity"{tuple_delimiter}TABAGISMO{tuple_delimiter}HÁBITO{tuple_delimiter}Hábito de fumar dos 10 aos 20 anos, com abstinência há 19 anos)
 {record_delimiter}
-("relationship"{tuple_delimiter}QUINTARA{tuple_delimiter}AURELIA{tuple_delimiter}Quintara brokered the hostage exchange between Firuzabad and Aurelia{tuple_delimiter}2)
+("entity"{tuple_delimiter}TUBERCULOSE PULMONAR{tuple_delimiter}CONDICAO_CLINICA{tuple_delimiter}Doença tratada aos 18 anos, sem relação direta com a hepatopatia atual)
 {record_delimiter}
-("relationship"{tuple_delimiter}QUINTARA{tuple_delimiter}FIRUZABAD{tuple_delimiter}Quintara brokered the hostage exchange between Firuzabad and Aurelia{tuple_delimiter}2)
+("relationship"{tuple_delimiter}ELASTOGRAFIA (CEDIM){tuple_delimiter}FÍGADO{tuple_delimiter}A elastografia avaliou o fígado e identificou esteatose e fibrose{tuple_delimiter}9)
 {record_delimiter}
-("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}ALHAMIA PRISON{tuple_delimiter}Samuel Namara was a prisoner at Alhamia prison{tuple_delimiter}8)
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}ESTEATOSE{tuple_delimiter}O fígado apresenta sinais de esteatose de grau moderado{tuple_delimiter}8)
 {record_delimiter}
-("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}Samuel Namara and Meggie Tazbah were exchanged in the same hostage release{tuple_delimiter}2)
+("relationship"{tuple_delimiter}FÍGADO{tuple_delimiter}FIBROSE{tuple_delimiter}O fígado apresenta fibrose em estágio F0/F1{tuple_delimiter}8)
 {record_delimiter}
-("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}Samuel Namara and Durke Bataglani were exchanged in the same hostage release{tuple_delimiter}2)
+("relationship"{tuple_delimiter}CRITÉRIOS PELO PCDT{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}O paciente não preenche os critérios do PCDT para tratamento da hepatopatia crônica{tuple_delimiter}7)
 {record_delimiter}
-("relationship"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}Meggie Tazbah and Durke Bataglani were exchanged in the same hostage release{tuple_delimiter}2)
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ESQUISTOSSOMOSE{tuple_delimiter}A esquistossomose é uma das etiologias da hepatopatia crônica{tuple_delimiter}8)
 {record_delimiter}
-("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}FIRUZABAD{tuple_delimiter}Samuel Namara was a hostage in Firuzabad{tuple_delimiter}2)
+("relationship"{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}ALCOÓLICA{tuple_delimiter}A etiologia alcoólica contribui para a hepatopatia crônica{tuple_delimiter}8)
 {record_delimiter}
-("relationship"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}FIRUZABAD{tuple_delimiter}Meggie Tazbah was a hostage in Firuzabad{tuple_delimiter}2)
+("relationship"{tuple_delimiter}INGESTÃO ALCOÓLICA{tuple_delimiter}ALCOÓLICA{tuple_delimiter}A ingestão alcoólica é a causa da etiologia alcoólica da hepatopatia{tuple_delimiter}9)
 {record_delimiter}
-("relationship"{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}FIRUZABAD{tuple_delimiter}Durke Bataglani was a hostage in Firuzabad{tuple_delimiter}2)
+("relationship"{tuple_delimiter}TABAGISMO{tuple_delimiter}HEPATOPATIA CRÔNICA{tuple_delimiter}O tabagismo pode ter contribuído para a hepatopatia crônica, embora não seja a causa principal{tuple_delimiter}5)
 {completion_delimiter}
+#############################
 
-######################
+
+
 -Real Data-
 ######################
-Entity_types: {entity_types}
-Text: {input_text}
+text: {input_text}
 ######################
-Output:
+output:
