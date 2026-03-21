@@ -1,0 +1,17 @@
+Detect disease progression patterns and velocity for patient {{PATIENT_ID}}.
+
+ANALYZE:
+├─ MELD velocity [points per year]
+├─ Child-Pugh migration [A→B→C timeframes]
+├─ Fibrosis progression [if available]
+├─ Complication accumulation [rate of new complications]
+└─ Decompensation frequency [interval between events]
+
+PATTERN CLASSIFICATION:
+- Stable disease
+- Gradual progression
+- Rapid deterioration
+- Stepwise decline
+- Fluctuating course
+
+Output: JSON with progression metrics + classification.

@@ -1,0 +1,16 @@
+Analyze cascade of complications for patient {{PATIENT_ID}}, identifying causal chains and interdependencies.
+
+For EACH complication:
+├─ Type and severity
+├─ Precipitating factors
+├─ Causal Relationships
+│  ├─ Upstream causes [what led to this]
+│  └─ Downstream consequences [what this caused]
+└─ Management & Outcome
+
+COMPLICATION CASCADES (Identify):
+1. Hepatorenal Chain: Ascites → Diuretics → HRS
+2. Infection → ACLF: SBP → Sepsis → Multi-organ failure
+3. Portal HTN: Varices → Bleeding → Shock → Renal failure
+
+Output: Complication network graph + causal chains.

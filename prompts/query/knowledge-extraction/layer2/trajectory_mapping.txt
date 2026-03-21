@@ -1,0 +1,31 @@
+Construct comprehensive clinical trajectory for patient {{PATIENT_ID}} from initial presentation through current state.
+
+TRAJECTORY STRUCTURE:
+
+PHASE 1: Pre-Diagnosis & Presentation
+├─ Initial symptoms
+├─ Diagnostic journey
+└─ Presenting severity
+
+PHASE 2: Treatment Era(s)
+├─ Etiological treatment [intervention, response]
+└─ Complication management
+
+PHASE 3: Inflection Points
+├─ First decompensation
+├─ Subsequent decompensations
+├─ HCC diagnosis (if applicable)
+└─ Hospitalizations
+
+PHASE 4: Current State
+└─ Disease status, functional status, prognosis
+
+TRAJECTORY CLASSIFICATION:
+Classify into archetype:
+1. Stable Compensated
+2. Slow Progressors
+3. Rapid Progressors
+4. Cascading Failure
+5. HCC-Dominated
+
+Output: Trajectory JSON + archetype + inflection timeline.

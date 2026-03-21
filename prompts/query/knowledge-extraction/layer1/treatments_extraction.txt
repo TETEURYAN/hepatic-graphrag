@@ -1,0 +1,32 @@
+Reconstruct the complete therapeutic timeline for patient {{PATIENT_ID}}, capturing ALL medication changes, procedures, and clinical reasoning.
+
+For EACH therapeutic intervention:
+
+MEDICATION ENTITY:
+├─ Drug Information
+│  ├─ Generic name: [standardized]
+│  ├─ Class: [pharmacological category]
+│  └─ Indication: [explicit or inferred]
+│
+├─ Dosing Timeline
+│  ├─ Initial prescription [date, dose, rationale]
+│  ├─ Dose modifications [each change with reason]
+│  └─ Discontinuation [date, reason, replacement]
+│
+├─ Response Assessment
+│  ├─ Efficacy indicators
+│  ├─ Time to response
+│  └─ Adverse events
+│
+PROCEDURES:
+├─ Paracentesis [frequency, volumes, complications]
+├─ Endoscopy [findings, interventions]
+└─ Other [TIPS, RFA, transplant]
+
+CRITICAL:
+- Capture EVERY medication change with EXPLICIT rationale
+- Flag THERAPEUTIC FAILURES
+- Identify TREATMENT GAPS
+- Detect ADVERSE DRUG EVENTS
+
+Output: JSON medication graph + procedure timeline.
