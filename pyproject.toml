@@ -11,4 +11,7 @@ dependencies = [
     "azure-storage-blob>=12.27.0",
     "graphrag>=2.7.0",
     "plotly>=6.5.0",
+    "rouge-score>=0.1.2",
+    "tqdm>=4.67.1",
+    "nltk>=3.9.1",
 ]
