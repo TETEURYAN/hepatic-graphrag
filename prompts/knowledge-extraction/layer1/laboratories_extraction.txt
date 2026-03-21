@@ -1,0 +1,31 @@
+Extract ALL laboratory results for patient {{PATIENT_ID}} and perform automated trend analysis.
+
+For EACH laboratory parameter:
+
+LAB ENTITY:
+├─ Parameter [name, unit, reference range]
+├─ Time-Series Data [chronological values]
+├─ Trend Analysis (Automated)
+│  ├─ Direction: [stable, increasing, decreasing]
+│  ├─ Rate of change: [Δ per unit time]
+│  ├─ Velocity: [accelerating, constant]
+│  └─ Breakpoints: [sudden changes]
+│
+└─ Clinical Interpretation
+   ├─ Current status
+   ├─ Prognostic significance
+   └─ Actionable thresholds
+
+COMPOSITE SCORES (Auto-calculated):
+├─ MELD Timeline
+├─ MELD-Na Timeline
+├─ Child-Pugh Timeline
+└─ FIB-4 / APRI
+
+TREND ALERTS (Auto-flag):
+- MELD increase >3 points in <3 months
+- Bilirubin rise >0.5 mg/dL/month for 3+ months
+- Albumin drop >0.3 g/dL/month
+- AFP doubling time <6 months
+
+Output: Structured lab time-series JSON + automated alerts.

@@ -1,0 +1,34 @@
+Extract comprehensive demographic and contextual information for patient {{PATIENT_ID}}.
+
+Structure the response as a hierarchical entity graph:
+
+PATIENT ENTITY:
+├─ Demographics
+│  ├─ Age: [value + temporal context: 'at diagnosis', 'current']
+│  ├─ Sex: [value]
+│  ├─ Occupation: [value + exposure risks if relevant]
+│  └─ Geographic origin: [if available, for epidemiology]
+│
+├─ Family History
+│  ├─ Liver disease: [yes/no + specifics: type, relationship, age of onset]
+│  ├─ Cancer: [type, relationship]
+│  ├─ Metabolic conditions: [diabetes, obesity in family]
+│  └─ Risk stratification: [familial risk score if calculable]
+│
+├─ Social Determinants
+│  ├─ Alcohol use: [quantified: g/day, duration, current status]
+│  ├─ Smoking: [pack-years, current status]
+│  ├─ Drug use: [if documented]
+│  └─ Socioeconomic indicators: [if documented]
+│
+└─ Comorbidity Profile
+   ├─ Active comorbidities: [list with onset dates]
+   └─ Medications for comorbidities: [potential drug-disease interactions]
+
+CRITICAL: 
+- Tag each data point with SOURCE (evolution date/document)
+- Mark CONFIDENCE (explicit vs. inferred)
+- Flag GAPS (missing critical demographic data)
+- Identify RISK FACTORS derived from demographics
+
+Output format: JSON with nested entities and metadata.
