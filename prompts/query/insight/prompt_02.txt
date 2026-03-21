@@ -1,0 +1,2 @@
+graphrag query   --method basic   --query "Tell me about the clinival evolution of patient Q.M.S"   --root ./datatest   --config ./datatest/settings.yaml   --data ./datat
+est/output

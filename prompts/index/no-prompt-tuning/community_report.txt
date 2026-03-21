@@ -1,0 +1,2 @@
+Gere um resumo das informações mais relevantes do texto, destacando padrões, temas ou tópicos principais.
+O resumo deve ser claro e conciso, até 2000 caracteres.
