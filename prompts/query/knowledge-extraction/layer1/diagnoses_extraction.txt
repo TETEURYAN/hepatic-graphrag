@@ -1,0 +1,34 @@
+Extract and structure ALL diagnoses for patient {{PATIENT_ID}} with complete classification metadata.
+
+For EACH diagnosis identified, extract:
+
+DIAGNOSIS ENTITY:
+├─ Condition Name
+│  ├─ Primary term: [standardized nomenclature]
+│  ├─ ICD-10 code: [if mentioned or inferable]
+│  └─ Synonyms used: [variations in documentation]
+│
+├─ Etiological Chain
+│  ├─ Primary cause: [e.g., HCV, alcohol, NASH]
+│  ├─ Contributing factors: [ranked by importance]
+│  └─ Causal pathway: [A → B → C if multi-step]
+│
+├─ Staging/Grading (if applicable)
+│  ├─ Child-Pugh: [score + class + components]
+│  ├─ MELD/MELD-Na: [score + components]
+│  ├─ Fibrosis stage: [F0-F4, method]
+│  ├─ BCLC for HCC: [stage + criteria]
+│  └─ Temporal evolution: [stage migrations over time]
+│
+├─ Diagnostic Evidence
+│  ├─ Clinical criteria: [symptoms, signs]
+│  ├─ Laboratory: [key diagnostic labs]
+│  ├─ Imaging: [modality + findings]
+│  └─ Histology: [biopsy results if available]
+│
+└─ Clinical Impact
+   ├─ Prognostic implication
+   ├─ Therapeutic implications
+   └─ Monitoring requirements
+
+Output: Structured JSON with temporal diagnosis graph.

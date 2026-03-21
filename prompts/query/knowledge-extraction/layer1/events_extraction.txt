@@ -1,0 +1,19 @@
+Extract ALL clinical events, hospitalizations, procedures, and complications for patient {{PATIENT_ID}}.
+
+For EACH event:
+
+EVENT ENTITY:
+├─ Type [hospitalization, procedure, complication]
+├─ Date and duration
+├─ Severity [grade, class]
+├─ Precipitating factors
+├─ Management [treatment, response]
+└─ Outcome [resolved, ongoing, sequelae]
+
+Focus on:
+- Hospitalizations [reason, length, ICU, readmissions]
+- Procedures [paracentesis, endoscopy, TIPS, surgery]
+- Complications [ascites, encephalopathy, bleeding, SBP, HRS, HCC]
+- Critical events [decompensation, ACLF, transplant listing]
+
+Output: JSON event timeline with severity and outcomes.
