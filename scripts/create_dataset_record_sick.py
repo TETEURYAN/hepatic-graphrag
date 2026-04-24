@@ -7,6 +7,7 @@ import os
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import datetime
 import pandas as pd
 
 
@@ -21,6 +22,7 @@ class Config:
     output_dir: str
     verbose: bool = False
     fingerprint_len: int = 120
+    file_type: str = ""
 
 
 TIPOS_DOENCA = [
@@ -239,15 +241,23 @@ class DataExporter:
 
     def __init__(self, config: Config):
         self.output = config.output_dir
+        self.file_type = getattr(config, "file_type", "")
         os.makedirs(self.output, exist_ok=True)
 
     def save(self, dataset, agg):
 
-        dataset.to_csv(os.path.join(self.output, "dataset.csv"), index=False)
-        dataset.to_parquet(os.path.join(self.output, "dataset.parquet"), index=False)
-        agg.to_csv(os.path.join(self.output, "agg.csv"), index=False)
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        print(f"✔ Salvo em {self.output}")
+        type_part = f"_{self.file_type}" if self.file_type else ""
+
+        dataset_name = f"dataset{type_part}_{ts}"
+        agg_name = f"agg{type_part}_{ts}"
+
+        dataset.to_csv(os.path.join(self.output, f"{dataset_name}.csv"), index=False)
+        dataset.to_parquet(os.path.join(self.output, f"{dataset_name}.parquet"), index=False)
+        agg.to_csv(os.path.join(self.output, f"{agg_name}.csv"), index=False)
+
+        print(f"✔ Salvo em {self.output} as: {dataset_name}.{{csv,parquet}}, {agg_name}.csv")
 
 
 # =============================================================================
@@ -261,6 +271,7 @@ def parse_args():
     parser.add_argument("--csv", required=True, help="Caminho do CSV")
     parser.add_argument("--parquet-dir", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--type", dest="file_type", default="", help='Tipo que será adicionado ao nome do arquivo (ex.: "prompt-tuning")')
     parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
@@ -270,6 +281,7 @@ def parse_args():
         parquet_dir=args.parquet_dir,
         output_dir=args.output_dir,
         verbose=args.verbose
+        , file_type=args.file_type
     )
 
 
