@@ -52,7 +52,7 @@ graphrag query --root graphrag
 
 ---
 
-## 🧱 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 hepatic-graphrag/
