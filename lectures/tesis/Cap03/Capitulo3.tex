@@ -1,0 +1,27 @@
+\chapter{Metodologia}\label{cap:metodologia}
+
+A metodologia aplicada neste projeto consiste na análise da base de evoluções clínicas de pacientes hepáticos, a construção da base de texto, a extração de entidades e relações com \texttt{GraphRAG}, e a geração de respostas a consultas. As etapas de extração de entidades e ligação de relacionamentos foram definidas separadamente para garantir que informações complexas e inter-relacionadas sejam corretamente representadas em um grafo de conhecimento (KG), permitindo consultas precisas e detalhadas.
+
+\section{Base de Dados}
+A base de dados utilizada será composta por evoluções clínicas de pacientes hepáticos, fornecidas pelo HU da Universidade Federal de Alagoas. Por se tratar de informações sensíveis, todo o processamento será realizado localmente utilizando a abordagem do \texttt{\href{https://github.com/TheAiSingularity/graphrag-local-ollama}{graphrag-local-ollama}}, viabilizando o modelo \texttt{mistral} localmente e garantindo que os dados permaneçam em um ambiente seguro e que não ingringam a Lei Geral de Proteção de Dados(LGPD).
+
+As evoluções clínicas passarão por pré-processamento e limpeza textual, incluindo remoção de ruídos, normalização de termos clínicos e anonimização. A anonimização será realizada com técnicas de NER, através do framework \texttt{Spacy} e o modelo local \texttt{gpt-oss:8b}, visando identificar e substituir nomes de pacientes, médicos e outros dados sensíveis.  
+
+A base de texto final será estruturada em três conjuntos: treino, validação e teste, permitindo futuras avaliações do sistema e garantindo a integridade e a segurança dos dados. Cada documento será segmentado em blocos de texto (\textit{text chunks}) com tamanho otimizado para equilibrar custo computacional e recall de informações, mantendo a consistência semântica em cada bloco.
+
+\subsection{Distribuição e Estatísticas}
+O conjunto de dados conterá todas as evoluções clínicas disponíveis, incluindo informações sobre exames laboratoriais, diagnósticos, procedimentos, medicamentos prescritos e eventos clínicos. Cada registro será tratado como um documento independente, e os blocos de texto gerados terão sobreposição mínima para evitar perda de contexto relevante. Essa segmentação permitirá que o LLM processe cada bloco de forma eficiente, extraindo entidades e relações de forma precisa.
+
+\section{Extração de Entidades}
+A extração de entidades será realizada pelo LLM a partir dos blocos de texto. Serão identificadas entidades como pacientes, exames, diagnósticos, medicamentos, procedimentos e eventos clínicos.
+
+Para cada entidade, serão geradas descrições concisas que resumam informações importantes, como datas, valores de exames ou interações com outros elementos clínicos. Além disso, serão detectadas relações entre entidades, como “paciente realizou exame”, “diagnóstico associado a exame” ou “medicamento prescrito para diagnóstico”, formando a base do KG.
+
+Entidades repetidas serão agregadas e a frequência de ocorrência servirá para calcular pesos nas relações, evitando redundâncias e permitindo respostas mais precisas. O modelo de embeddings \texttt{Distropic} será usado para medir similaridade semântica entre entidades e consolidar informações distribuídas em múltiplos blocos.
+
+\section{Consultas e Recuperação de Informação}
+Diante de uma consulta, os resumos das comunidades serão organizados em blocos e processados pelo LLM. Cada bloco será acompanhado de prompts específicos que instruirão o modelo a extrair informações relevantes, resumir o conteúdo e avaliar a utilidade das respostas para a consulta apresentada.  
+
+O LLM atribuirá uma pontuação de relevância a cada resposta intermediária, filtrando resultados irrelevantes ou redundantes. Em seguida, as respostas selecionadas serão agregadas em um contexto global, respeitando o limite de tokens, para gerar a resposta final.  
+
+A similaridade semântica entre a consulta e os blocos de texto será calculada utilizando o modelo de embeddings \texttt{Distropic}, auxiliando na priorização de informações mais pertinentes. Prompts bem estruturados permitirão que o LLM realize inferências sobre relações entre entidades, identifique detalhes importantes de eventos clínicos e sintetize resumos consistentes mesmo quando a informação estiver distribuída em múltiplos blocos.
