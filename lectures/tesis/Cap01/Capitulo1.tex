@@ -1,0 +1,43 @@
+\chapter{Introdução}\label{cap:introducao}
+
+As doenças hepáticas representam um grave problema de saúde pública mundial, sendo responsáveis por milhões de mortes anuais devido a complicações como cirrose, hepatite viral e carcinoma hepatocelular \citep{sousa2023}. No Brasil, estudos recentes indicam que a mortalidade por hepatites crônicas aumentou nas regiões Norte e Nordeste, enquanto a mortalidade por hepatites A, B, outras virais e não especificadas apresentou tendência de queda entre 2001 e 2020 \citep{sousa2023}. Esses dados evidenciam a necessidade de monitoramento longitudinal da evolução clínica dos pacientes.
+
+O diagnóstico e acompanhamento de pacientes hepatopatas dependem fortemente de registros clínicos detalhados, armazenados em prontuários eletrônicos. Entretanto, esses registros contêm grandes volumes de dados não estruturados, dispersos em linguagem natural, o que dificulta sua análise sistemática \citep{schneider2023}. A falta de ferramentas computacionais eficientes impacta diretamente a qualidade do acompanhamento clínico, prejudicando a detecção precoce da progressão da doença e o planejamento de estratégias de tratamento \citep{hou2014}.
+
+O Processamento de Linguagem Natural (PLN) tem sido amplamente explorado para extração de informações médicas. Revisões recentes apontam avanços significativos no uso de PLN em gastroenterologia e hepatologia, incluindo técnicas baseadas em grandes modelos de linguagem (LLMs), mas ainda existem desafios relacionados a abreviações, terminologia especializada e evolução temporal dos prontuários \citep{stammers2025,shahab2024}. Ferramentas como ChatGPT têm mostrado potencial para auxiliar na síntese de informações médicas, embora com limitações quanto a precisão e viéses \citep{dave2023}.
+
+Nos últimos anos, técnicas de Retrieval-Augmented Generation (RAG)\citep{gao2024} têm sido aplicadas para integrar extração de conhecimento e recuperação de informações em bases especializadas. Entre essas, o GraphRAG combina LLMs com estruturas de grafos, permitindo modelar hierarquias e relações complexas entre entidades clínicas, o que facilita a análise ao longo do tempo e a geração de resumos contextualizados \citep{edge2024,xiang2025}. Estudos recentes destacam que a eficácia do GraphRAG depende do tipo de tarefa, da qualidade do grafo e da estratégia de construção de comunidades, sendo crucial avaliar seu desempenho em cenários clínicos \citep{xiang2025}. Apesar dos avanços no uso de técnicas de  PLN para a extração de informações médicas em prontuários eletrônicos, a análise longitudinal da evolução clínica de pacientes hepatopatas ainda apresenta desafios significativos.
+
+\section{Objetivo Geral}
+
+ Nesse contexto, o principal objetivo deste trabalho é desenvolver e avaliar uma abordagem baseada em GraphRAG para a extração e o monitoramento de informações clínicas em prontuários eletrônicos de pacientes hepatopatas, buscando responder aos seguintes questionamentos:
+
+\begin{enumerate}
+    \item Como a aplicação da sumarização de contexto pode melhorar a análise de informações clínicas relevantes em prontuários eletrônicos de pacientes hepatopatas? 
+    \item Em que medida a modelagem temporal com GraphRAG permite identificar padrões evolutivos significativos na progressão das doenças hepáticas?  
+    \item Quais são as limitações e desafios na integração de GraphRAG com dados clínicos não estruturados em termos de acurácia e relevância das informações extraídas?
+\end{enumerate}
+
+\subsection{Objetivos Específicos}
+
+Para atingir o objetivo geral, este trabalho se propõe a:
+
+\begin{enumerate}
+    \item Realizar o pré-processamento e a anonimização das evoluções clínicas de pacientes hepáticos, aplicando técnicas de reconhecimento de entidades nomeadas;
+    
+    \item Estruturar a base textual em blocos semânticos (\textit{text chunks}) para posterior análise com modelos de linguagem de grande porte (\texttt{LLMs});
+    
+    \item Extrair as relações das entidades coletadas para construção do Kg;
+    
+    \item Calcular métricas estatísticas e descritivas da base de dados com apoio de técnicas como \texttt{TF-IDF} e \texttt{t-SNE};
+    
+    \item Desenvolver e aplicar prompts específicos para consultas semânticas, permitindo ao \texttt{LLM} sumarizar informações distribuídas em múltiplos blocos e gerar respostas globais contextualizadas a partir do \texttt{KG};
+    
+    \item Avaliar o desempenho da abordagem proposta quanto à precisão das extrações, relevância das respostas e qualidade da sumarização, comparando os resultados obtidos com diferentes estratégias de segmentação e de agrupamento de entidades.
+    
+\end{enumerate}
+
+% -----------------------------
+% Bibliografia
+% -----------------------------
+

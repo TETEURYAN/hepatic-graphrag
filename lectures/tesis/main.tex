@@ -1,0 +1,145 @@
+\documentclass[12pt,a4paper,oneside]{JITH}
+%\documentclass[12pt,a4paper,twoside]{JITH}
+
+\usepackage{amsmath,amsfonts,mathdots,amssymb, mathtools}
+\usepackage{graphicx}
+\usepackage[caption=false]{subfig}
+\usepackage{svg}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{natbib}
+\usepackage{pdfpages}
+\usepackage{booktabs}
+\usepackage{indentfirst}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\tikzset{%
+  every neuron/.style={
+    circle,
+    draw,
+    minimum size=1cm
+  },
+  neuron missing/.style={
+    draw=none, 
+    scale=4,
+    text height=0.333cm,
+    execute at begin node=\color{black}$\vdots$
+  },
+}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+% \usepackage{natbib}
+
+% \bibliographystyle{plainnat} % estilo com [Autor et al., Ano]
+
+\usepackage[utf8]{inputenc}
+\usepackage{natbib} % para citações [Autor et al., Ano]
+% \bibliographystyle{plainnat} % define o estilo das referências
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Pacotes adicionados % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\usepackage{easyReview} %%para revisoes
+\setreviewson
+%%how to:
+%%\replace{This part of the text needs to be replaced}{for this newer part of the text}
+%%\comment{This text will receive a comment.}{This is the comment I have!}.
+%%\replace{This part of the text needs to be replaced}{for this newer part of the text}.
+%%\add{This text is been added now}
+%%\remove{This text is to be removed}
+%%\highlight{A text with the highlight command}.
+%%\alert{A text with the alert command}
+\include{macros}
+
+%% % % % % % %
+\onehalfspacing
+\bibliographystyle{plainnat}        % estilo [Autor et al., Ano]
+% \bibliography{Ref/SampleReferences}     % arquivo .bib
+\begin{document}
+\sloppy
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\include{Identificacao}	% % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\capa
+% \folhaDeRosto
+% \includepdf{Cap00/Ficha Catalográfica.pdf}
+% \includepdf{Cap00/TCC_avaliacao_assinado-1.pdf}
+% \folhaDeAprovacao
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Opcionais % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\agradecimentos %opcional
+%\epigrafe %opcional
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Obrigatórios  % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% \resumo
+% \abstract
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% \listoffigures
+% \cleardoublepage
+% % % % % % % % % % % % % % % % %
+% \listoftables
+% \cleardoublepage
+% \simbolos
+% \cleardoublepage
+\abreviaturas
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+%\renewcommand{\contentsname}{Summary}
+\tableofcontents
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\pagenumbering{arabic}
+
+\pagestyle{myheadings}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Incluir capítulos aqui  % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{Cap01/Capitulo1}
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{Cap02/Capitulo2}
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{Cap03/Capitulo3}
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{Cap04/Capitulo4}
+\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% %\input{Cap05/Capitulo5}
+% %\cleardoublepage
+% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% %\input{Cap06/Capitulo6}
+% %\cleardoublepage
+% %%% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% \input{Conc/Conclusao.tex}
+% \cleardoublepage
+%%% % % % % % % % % % % % % % % % % % % % % % % % % % %
+%%% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% \markright{Bibliography}
+%\renewcommand\bibname{Bibliography}
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Definir estilo bibliográfico  % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\include{Ref/referencia}
+
+%%% % % % % % % % % % % % % % % % % % % % % % % % % % %
+%%% % % % % % % % % % % % % % % % % % % % % % % % % % %
+\end{document}
