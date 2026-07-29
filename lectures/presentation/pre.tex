@@ -1,0 +1,216 @@
+% !TeX program = xelatex
+\documentclass[9pt]{beamer}
+\usepackage[szu,en]{collegeBeamer}
+\usepackage{fontspec}
+% falls back to a widely-available monospace font on machines without Cascadia Code installed
+
+\IfFontExistsTF{Cascadia Code}
+    {\newfontfamily\cascadia{Cascadia Code}}
+    {\newfontfamily\cascadia{DejaVu Sans Mono}}
+\usetikzlibrary{positioning,arrows.meta}
+
+% biblatex: reuses relevant entries from tesis/Ref/SampleReferences.bib (copied into
+% referencias.bib inside presentation/, without touching the original .bib in tesis/)
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{referencias.bib}
+
+\renewcommand{\qaStr}{\textsl{Thank you for your attention! \\ Questions and comments are welcome.}}
+
+\definecolor{hrefcol}{RGB}{55, 50, 204} % Example: blue color
+
+% meta-data
+\title{
+{\large\color{blue!60!black}\textbf{Computer Science}}\\[0.8em]
+Extraction and longitudinal \\
+monitoring of clinical information\\
+in hepatology using GraphRAG
+}
+% the theme's title-page template always appends "\\" after \insertsubtitle;
+% an empty subtitle makes that "\\" have nothing to end, causing a LaTeX error,
+% so a near-invisible placeholder (thin space) is used instead of leaving it undefined
+\subtitle{\,}
+
+\author{
+Matheus Ryan da Silva Nascimento\\
+{\footnotesize\cascadia\href{mailto:mrysn@ic.ufal.br}{mrysn@ic.ufal.br}}}
+
+\date{
+Maceió, Brazil\\
+August 2026
+}
+
+% document body
+\begin{document}
+
+    \maketitle
+
+    \section{Introduction}
+
+    \begin{frame}{Context and Motivation}
+        \begin{itemize}
+            \item Liver diseases: a major global public-health problem \\
+            (cirrhosis, viral hepatitis, hepatocellular carcinoma) \cite{sousa2023}
+            \item In Brazil, chronic hepatitis mortality has been rising in the North/Northeast (2001--2020) \cite{sousa2023}
+            \item Diagnosis and follow-up rely on electronic health records rich in free text \cite{schneider2023}
+            \item Lack of computational tools hinders early detection and treatment planning \cite{hou2014}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{NLP, RAG, and GraphRAG}
+        \small
+        \begin{itemize}
+            \itemsep1pt
+            \item NLP has advanced in gastroenterology/hepatology, including with LLMs, but still faces abbreviations, clinical jargon, and temporal evolution \cite{stammers2025,shahab2024}
+            \item Tools like ChatGPT help synthesize medical information, with limitations in accuracy and bias \cite{dave2023}
+            \item \textbf{RAG}: retrieval integrated with LLM-based generation \cite{gao2024}
+            \item \textbf{GraphRAG}: LLMs + knowledge graphs -- models hierarchies and complex relations between clinical entities \cite{edge2024}
+            \item Effectiveness depends on the task, graph quality, and community-detection strategy \cite{xiang2025}
+        \end{itemize}
+        \vskip0.3em
+        \centering\footnotesize\ctextbf{Gap: longitudinal analysis of clinical progression in liver-disease patients remains largely unexplored}
+    \end{frame}
+
+    \begin{frame}{General Objective}
+        Develop and evaluate a \textbf{GraphRAG}-based approach for extracting and monitoring clinical information in electronic health records of liver-disease patients.
+
+        \vskip1em
+        \begin{block}{Research Questions}
+            \begin{enumerate}
+                \item How can context summarization improve the analysis of relevant clinical information?
+                \item To what extent does temporal modeling with GraphRAG reveal meaningful evolutionary patterns in liver-disease progression?
+                \item What are the limitations of integrating GraphRAG with unstructured clinical data (accuracy and relevance)?
+            \end{enumerate}
+        \end{block}
+    \end{frame}
+
+    \begin{frame}{Specific Objectives}
+        \begin{itemize}
+            \item Pre-process and anonymize clinical progress notes (named entity recognition)
+            \item Structure the text base into semantic blocks (\textit{text chunks}) for analysis with LLMs
+            \item Extract entities and relations to build the knowledge graph (KG)
+            \item Compute statistical and descriptive metrics of the dataset (\texttt{TF-IDF}, \texttt{t-SNE})
+            \item Develop prompts for summarization and generation of contextualized global answers
+            \item Evaluate precision, relevance, and summarization quality, comparing segmentation and clustering strategies
+        \end{itemize}
+    \end{frame}
+
+    \section{Relevance of the Work}
+
+    \begin{frame}{Why This Work Matters}
+        \small
+        \begin{itemize}
+            \itemsep1pt
+            \item Liver diseases carry a heavy burden of hospitalizations and mortality; the literature points to the need for precision medicine in hepatology \cite{SABRIE2023350}
+            \item Free-text records remain underused: NLP already extracts useful information, but with low explainability and little temporal integration \cite{omar2025}
+            \item NLP + knowledge graphs + retrieval-augmented generation (GraphRAG) is still rare in hepatology \cite{stammers2025}
+        \end{itemize}
+        \vskip0.2em
+        \begin{block}{Three gaps addressed}
+            \begin{enumerate}
+                \itemsep0pt
+                \item Intelligent extraction of unstructured textual data in liver disease
+                \item Longitudinal monitoring in a secure, local environment
+                \item Use of knowledge graphs to explore this information
+            \end{enumerate}
+        \end{block}
+    \end{frame}
+
+    \section{Methodology}
+
+    \begin{frame}{Pipeline Overview}
+        \begin{center}
+        \resizebox{\textwidth}{!}{%
+        \begin{tikzpicture}[node distance=0.5cm, every node/.style={font=\scriptsize}]
+            \tikzset{box/.style={draw=maincolor, thick, rounded corners, fill=morelightgray, text width=2.3cm, align=center, minimum height=1.5cm}}
+            \node[box] (a) {Clinical progress notes};
+            \node[box, right=of a] (b) {Pre-processing \& anonymization};
+            \node[box, right=of b] (c) {Semantic chunking};
+            \node[box, right=of c] (d) {Entity/relation extraction (KG)};
+            \node[box, right=of d] (e) {Queries \& answer generation};
+            \foreach \x/\y in {a/b, b/c, c/d, d/e}{\draw[-{Latex}, thick] (\x) -- (\y);}
+        \end{tikzpicture}%
+        }
+        \end{center}
+        \vskip0.5em
+        Entity extraction and relation linking are handled as distinct steps, ensuring that complex, inter-related information is correctly represented in the KG.
+    \end{frame}
+
+    \begin{frame}{Dataset and Privacy}
+        \begin{itemize}
+            \item Clinical progress notes of liver-disease patients provided by UFAL's University Hospital (HU-UFAL)
+            \item \textbf{100\% local} processing, via \texttt{graphrag-local-ollama}, using the \texttt{mistral} model
+            \item Sensitive data never leaves the controlled environment -- compliant with Brazil's \textbf{LGPD}
+            \item Anonymization via NER: \texttt{spaCy} framework + local \texttt{gpt-oss:8b} model (patient names, physicians, and other sensitive data)
+            \item Final dataset split into training, validation, and test sets; documents segmented into \textit{chunks} with minimal overlap
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Entity and Relation Extraction}
+        \begin{itemize}
+            \item Entities extracted by the LLM from text chunks: patients, exams, diagnoses, medications, procedures, clinical events
+            \item Concise descriptions per entity (dates, exam values, interactions)
+            \item Relations such as ``patient underwent exam'', ``diagnosis associated with exam'', ``medication prescribed for diagnosis''
+            \item Repeated entities are aggregated; frequency weighs the relations
+            \item \texttt{Distropic} embeddings for semantic similarity and consolidation across multiple chunks
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Query and Information Retrieval}
+        \begin{itemize}
+            \item Community summaries organized into blocks, processed by the LLM with task-specific prompts
+            \item The LLM assigns a relevance score to each intermediate answer, filtering out irrelevant/redundant results
+            \item Selected answers are aggregated into a global context, respecting the token limit
+            \item Query--text similarity computed via \texttt{Distropic} embeddings, prioritizing the most pertinent information
+        \end{itemize}
+    \end{frame}
+
+    \section{Project Status}
+
+    \begin{frame}{Planned Timeline}
+        \begin{center}
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabular}{|p{5.6cm}|c|c|c|}
+            \hline
+            \textbf{Phase} & \textbf{Months 1--2} & \textbf{Months 3--4} & \textbf{Months 5--6} \\
+            \hline
+            Dataset collection \& anonymization & X & & \\
+            \hline
+            Semantic segmentation \& entity extraction & X & X & \\
+            \hline
+            Graph construction \& querying & & X & X \\
+            \hline
+            Evaluation, refinement, and final write-up & & & X \\
+            \hline
+        \end{tabular}
+        \end{center}
+        \vskip0.5em
+        {\scriptsize Condensed from the project's 6-month plan; carried out incrementally, with continuous review.}
+    \end{frame}
+
+    \begin{frame}{Current Status}
+        % TODO: update this list with the real status of each stage before the defense
+        \begin{itemize}
+            \item \ctextbf{Completed:} pre-processing, anonymization (NER), and semantic segmentation of the clinical-notes dataset
+            \item \ctextbf{In progress:} entity/relation extraction and knowledge-graph construction; query and information retrieval
+            \item \ctextbf{Next steps:} systematic evaluation (precision, relevance, summarization quality) comparing segmentation and clustering strategies
+        \end{itemize}
+    \end{frame}
+
+    \section{Concluding Remarks}
+
+    \begin{frame}{Work in Progress}
+        % TODO: replace with real conclusions and results once the experiments are complete
+        \begin{itemize}
+            \item GraphRAG approach applied to a still largely unexplored domain: hepatology
+            \item Local, secure pipeline, LGPD-compliant, from pre-processing to answer generation
+            \item Comparative evaluation between segmentation and entity-clustering strategies under way
+            \item Expected contribution: a replicable method for longitudinal monitoring of liver-disease patients from unstructured textual data
+        \end{itemize}
+    \end{frame}
+
+    \bibliographpage
+
+    \QApage
+
+\end{document}
