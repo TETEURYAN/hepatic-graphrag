@@ -24,11 +24,18 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from src.core.paths import DATASET_ANONIMIZADO  # noqa: E402
 
 
 @dataclass
@@ -95,8 +102,8 @@ def split(config: Config) -> pd.DataFrame:
 
 def parse_args() -> Config:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--csv", dest="csv_path", required=True, type=Path)
-    parser.add_argument("--output-dir", dest="output_dir", default=Path("input/texts"), type=Path)
+    parser.add_argument("--csv", dest="csv_path", default=DATASET_ANONIMIZADO, type=Path, help="Padrão: DATASET_ANONIMIZADO do .env")
+    parser.add_argument("--output-dir", dest="output_dir", default=_REPO_ROOT / "input" / "texts", type=Path)
     parser.add_argument("--col-id", default="prontuario")
     parser.add_argument("--col-text", default="descricao_anonimizada")
     parser.add_argument("--col-data", default="data_atendimento")

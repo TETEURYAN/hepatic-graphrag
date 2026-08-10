@@ -44,11 +44,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, cast
 
-_HERE = Path(__file__).resolve().parent
-_REPO_ROOT = _HERE.parents[1]
-for _p in (_HERE, _REPO_ROOT):
-    if str(_p) not in sys.path:
-        sys.path.insert(0, str(_p))
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from src.core.paths import (  # noqa: E402
+    GRAPHRAG_ROOT_BASE,
+    GRAPHRAG_ROOT_TUNED,
+    bootstrap_sys_path,
+)
+
+bootstrap_sys_path(Path(__file__).resolve().parent)
 
 from config import DEFAULT_QUERIES, METHODS, ExperimentConfig, QueryItem  # noqa: E402
 from metrics import compute_all  # noqa: E402
@@ -253,8 +259,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="run.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     idx = parser.add_argument_group("Caminhos do índice GraphRAG")
-    idx.add_argument("--root-base", required=True, metavar="DIR", help="Diretório raiz do índice GraphRAG SEM prompt tuning")
-    idx.add_argument("--root-tuned", required=True, metavar="DIR", help="Diretório raiz do índice GraphRAG COM prompt tuning")
+    idx.add_argument("--root-base", default=str(GRAPHRAG_ROOT_BASE), metavar="DIR", help="Diretório raiz do índice GraphRAG SEM prompt tuning (padrão: GRAPHRAG_ROOT_BASE do .env)")
+    idx.add_argument("--root-tuned", default=str(GRAPHRAG_ROOT_TUNED), metavar="DIR", help="Diretório raiz do índice GraphRAG COM prompt tuning (padrão: GRAPHRAG_ROOT_TUNED do .env)")
     idx.add_argument("--data-base", default=None, metavar="DIR", help="Diretório de dados (parquet) para o índice base. Padrão: <root-base>/output")
     idx.add_argument("--data-tuned", default=None, metavar="DIR", help="Diretório de dados (parquet) para o índice tuned. Padrão: <root-tuned>/output")
 
