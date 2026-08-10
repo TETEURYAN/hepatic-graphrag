@@ -1,92 +1,94 @@
-# Análise Longitudinal de Prontuários Eletrônicos com GraphRAG
+<div align="center">
+<h1>graphrag para prontuários hepatológicos</h1>
+</div>
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" />
-</p>
+<div align="center" style="max-width: 850px; margin: 0 auto;">
+<table>
+  <tr>
+    <td valign="top" style="padding-right: 16px; width: 150px;">
+      <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" width="140" />
+    </td>
+    <td valign="top" style="padding-left: 16px;">
+      <p>Pipeline que avalia o <strong>GraphRAG</strong> como classificador da doença hepática principal de um paciente a partir de prontuários eletrônicos anonimizados. Cada prontuário vira um documento indexado num grafo de conhecimento; a doença é obtida perguntando ao índice e extraindo o diagnóstico da resposta em texto livre do LLM.</p>
+      <p>Dois eixos são avaliados contra um ground truth anotado manualmente (141 prontuários): o <strong>método de busca</strong> do GraphRAG (<code>basic</code>/<code>local</code>/<code>global</code>/<code>drift</code>, em dois níveis de comunidade) e o efeito do <strong>prompt-tuning</strong> na etapa de indexação (extração de entidades e relatórios de comunidade).</p>
+    </td>
+  </tr>
+</table>
+</div>
 
-Projeto de TCC que avalia o **GraphRAG** como classificador da doença hepática
-principal de um paciente a partir de prontuários eletrônicos anonimizados,
-comparando métodos de busca (`basic`/`local`/`global`/`drift`) e o efeito de
-prompt-tuning na indexação.
-
----
-
-## Estrutura do projeto
-
-```
-.
-├── setup.sh                  # instala uv + ambiente virtual
-├── graphrag_config/           # settings.yaml de referência do GraphRAG
-├── prompts/                   # prompts de indexação e de query (por doença,
-│                               #   meta-prompts, extração de conhecimento)
-├── src/core/                  # biblioteca compartilhada entre os experimentos
-│   ├── patches/                #   hotfixes necessários antes de `graphrag query/index`
-│   ├── query/                  #   execução de query (runner.py) e progresso resumível
-│   ├── dataset/                #   split_dataset.py — divide o CSV bruto em documentos
-│   └── ground_truth/           #   anotação interativa do ground truth
-├── experiments/
-│   ├── grid_search/            # 8 sistemas (método × community-level) vs. ground truth
-│   └── prompt_tuning_comparison/  # índice com vs. sem prompt-tuning na indexação
-├── figures/                   # PNGs/CSVs de resultado prontos para publicação
-├── docs/                      # arquitetura, metodologia, guia de uso do GraphRAG
-└── archive/                   # código/notebooks/docs supersedidos, mantidos como
-                                #   referência histórica (não fazem parte do pipeline ativo)
-```
-
-**Nunca versionados** (`.gitignore`): `data/` (dataset bruto), `experimentos/`
-(índices GraphRAG locais), `input/`, `results/`, `progresso*/`,
-`resultados_*/` — tudo derivado do dataset ou contendo texto de prontuário
-real. Ver `docs/log_operacoes.md` para o histórico de por que cada coisa está
-onde está.
-
-## Pré-requisitos
-
-- [uv](https://github.com/astral-sh/uv)
-- Uma chave de API compatível com OpenRouter (`GRAPHRAG_API_KEY`) — copie
-  `.env.example` para `.env` e preencha.
-- O dataset bruto em `data/` (não incluído no repositório — dado sensível).
-
-## Setup
-
-```bash
-bash setup.sh          # instala uv + cria .venv + instala dependências
-cp .env.example .env   # preencha GRAPHRAG_API_KEY
-```
-
-## Fluxo de reprodução
-
-1. **Dividir o dataset por documento** (o CSV bruto tem várias linhas por
-   prontuário, não um documento por arquivo):
-   ```bash
-   uv run python src/core/dataset/split_dataset.py \
-     --csv data/coluna-evolucoes_anonimizadas.csv \
-     --output-dir input/texts
-   ```
-2. **Indexar** com o GraphRAG (ver `graphrag_config/README.md` para montar o
-   `settings.yaml` + prompts de um novo índice):
-   ```bash
-   uv run graphrag index --root <seu_indice>
-   ```
-3. **Rodar um experimento** — cada um em `experiments/<nome>/` tem seu
-   próprio `README.md` com o passo a passo específico:
-   - [`experiments/grid_search/`](experiments/grid_search/README.md):
-     compara os 4 métodos de busca × 2 community-levels no mesmo índice.
-   - [`experiments/prompt_tuning_comparison/`](experiments/prompt_tuning_comparison/README.md):
-     compara indexação com vs. sem prompt-tuning.
-
-Resultados de cada experimento (métricas, testes estatísticos, figuras) vão
-para diretórios não versionados (`resultados_grid/`, `resultados_avaliacao/`)
-— as figuras finais escolhidas para publicação são copiadas manualmente para
-`figures/`.
+Este repositório é o código de suporte de um Trabalho de Conclusão de Curso
+(TCC). A pergunta de pesquisa é se — e sob qual configuração — o GraphRAG
+consegue recuperar corretamente o diagnóstico principal de um paciente a
+partir do texto clínico bruto, sem que isso lhe seja dito diretamente. As
+duas baterias de experimento em [`experiments/`](experiments/) existem para
+isolar essa pergunta em duas comparações controladas — método de busca de um
+lado, prompt-tuning de indexação do outro — em vez de uma única configuração
+ad-hoc. Veja [docs/metodologia.md](docs/metodologia.md) para o desenho
+experimental completo e [docs/log_operacoes.md](docs/log_operacoes.md) para
+o histórico de como o código chegou nessa forma, o que foi corrigido ao
+longo do caminho e os resultados obtidos até agora.
 
 ## Documentação
 
-- `docs/arquitetura.md`, `docs/metodologia.md`, `docs/guia-graphrag.md`: guias gerais.
-- `docs/log_operacoes.md`: log cronológico do que foi feito no código, o que
-  segue em uso e o que ficou obsoleto.
-- `archive/`: código, notebooks e docs de fases anteriores do projeto,
-  preservados por valor histórico/metodológico mas fora do pipeline ativo.
+- [docs/metodologia.md](docs/metodologia.md): desenho experimental, hipóteses e critérios de avaliação.
+- [docs/arquitetura.md](docs/arquitetura.md): como o código está organizado (`src/core` vs. `experiments/`).
+- [docs/guia-graphrag.md](docs/guia-graphrag.md): referência de uso do GraphRAG (indexação, query, prompt-tuning).
+- [docs/arquivos_parquet.md](docs/arquivos_parquet.md): o que cada `.parquet` gerado pelo índice contém.
+- [docs/log_operacoes.md](docs/log_operacoes.md): log cronológico do que foi implementado, corrigido e removido, com os resultados de cada etapa.
+- [graphrag_config/README.md](graphrag_config/README.md): como montar um novo índice GraphRAG a partir da config e dos prompts deste repositório.
+- [experiments/grid_search/README.md](experiments/grid_search/README.md) e [experiments/prompt_tuning_comparison/README.md](experiments/prompt_tuning_comparison/README.md): passo a passo de reprodução de cada experimento.
 
-## Licença
+## Pré-requisitos
 
-Distribuído sob a licença MIT.
+- Python 3.11 (fixado em `.python-version`).
+- [uv](https://docs.astral.sh/uv/) — gerencia o ambiente virtual e as dependências.
+- Uma API key do [OpenRouter](https://openrouter.ai/keys), necessária para as chamadas ao LLM (`GRAPHRAG_API_KEY`).
+- O dataset bruto de prontuários em `data/` — **não incluído no repositório** por conter dado clínico sensível; ver a seção de dados sensíveis do [log de operações](docs/log_operacoes.md).
+
+## Instalação
+
+```bash
+bash setup.sh
+```
+
+Isso instala o `uv` (se necessário), cria o `.venv` e instala as dependências
+do projeto. Depois, configure a API key:
+
+```bash
+cp .env.example .env
+# edite .env e preencha GRAPHRAG_API_KEY
+```
+
+## Como rodar
+
+A reprodução completa tem três etapas — dividir o dataset em documentos,
+indexar com o GraphRAG e rodar um dos dois experimentos:
+
+```bash
+# 1. divide o CSV bruto (várias linhas por prontuário) em um documento por paciente
+uv run python src/core/dataset/split_dataset.py \
+  --csv data/coluna-evolucoes_anonimizadas.csv \
+  --output-dir input/texts
+
+# 2. indexa (ver graphrag_config/README.md para montar a pasta do índice)
+uv run graphrag index --root <seu_indice>
+
+# 3a. compara métodos de busca (ver experiments/grid_search/README.md)
+uv run python experiments/grid_search/run.py
+
+# 3b. ou compara com/sem prompt-tuning na indexação (ver
+#     experiments/prompt_tuning_comparison/README.md)
+uv run python experiments/prompt_tuning_comparison/run.py --help
+```
+
+Cada experimento salva progresso incrementalmente (`src/core/query/progress.py`)
+— se uma bateria for interrompida por rate limit ou timeout, rodar de novo só
+refaz o que falta. Os resultados brutos (`resultados_grid/`,
+`resultados_avaliacao/`) não são versionados; as figuras escolhidas para o
+relatório final do TCC ficam em [`figures/`](figures/).
+
+## Fora de escopo
+
+Sem interface web, API REST, banco de dados dedicado, autenticação, Docker ou
+orquestração (Airflow etc.). É um conjunto de scripts/notebooks de pesquisa,
+pensado para ser rodado localmente e reproduzido por quem revisar o TCC.
