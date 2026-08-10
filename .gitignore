@@ -27,3 +27,7 @@ second/
 # saídas de LLM com nome real de paciente no filename
 prompts/query/insight/output/
 
+# artefatos gerados, não código
+visualizacoes/
+.vscode/
+
