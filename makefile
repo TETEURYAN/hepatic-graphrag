@@ -1,4 +1,4 @@
-.PHONY: install run setup clean
+.PHONY: install setup clean
 
 # Cria e ativa o ambiente virtual com uv
 setup:
@@ -8,10 +8,6 @@ setup:
 # Instala dependências (se já existir o ambiente)
 install:
 	uv pip install -r pyproject.toml
-
-# Executa o projeto
-run:
-	uv run python main.py
 
 # Remove o ambiente virtual e arquivos temporários
 clean:
