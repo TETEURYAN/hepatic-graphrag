@@ -1,14 +1,14 @@
 <div align="center">
-<h1>Graphrag para prontuários hepatológicos</h1>
+<h1>GraphrRAG para prontuários hepatológicos</h1>
 </div>
 
 <div align="center" style="max-width: 850px; margin: 0 auto;">
 <table>
   <tr>
-    <td valign="top" style="padding-right: 20px; width: 150px;">
-      <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" width="140" />
+    <td valign="center" style="padding-right: 20px; width: 200px;">
+      <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" width="230" />
     </td>
-    <td valign="top" style="padding-left: 20px;">
+    <td valign="center" style="padding-left: 20px;">
       <p>Pipeline que avalia o <a href="https://github.com/microsoft/graphrag"><strong>GraphRAG</strong></a> (implementação oficial da Microsoft) como classificador da doença hepática principal de um paciente a partir de prontuários eletrônicos anonimizados. Cada prontuário vira um documento indexado num grafo de conhecimento; a doença é obtida perguntando ao índice e extraindo o diagnóstico da resposta em texto livre do LLM.</p>
       <p>Dois eixos são avaliados contra um ground truth anotado manualmente (141 prontuários): o <strong>método de busca</strong> do GraphRAG (<code>basic</code>/<code>local</code>/<code>global</code>/<code>drift</code>, em dois níveis de comunidade) e o efeito do <strong>prompt-tuning</strong> na etapa de indexação (extração de entidades e relatórios de comunidade).</p>
     </td>
@@ -58,18 +58,7 @@ anonimizado de forma imperfeita) está em uso. Ver
 ## Instalação
 
 ```bash
-graphrag index --root graphrag
-```
-
-Após a indexação, o grafo resultante poderá ser consultado via:
-```bash
-graphrag query --root graphrag
-```
-
----
-
-## Estrutura do Projeto
-
+bash setup.sh
 ```
 
 Isso instala o `uv` (se necessário), cria o `.venv` e instala as dependências
