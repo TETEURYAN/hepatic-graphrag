@@ -1,0 +1,283 @@
+DIAGNÓSTICO: FALHA DO MÉTODO "DRIFT" NA COLETA DO NOTEBOOK
+scripts/avaliacao_comparativa_rag.ipynb
+Data do diagnóstico: 2026-07-16
+
+
+RESUMO
+------
+O método `drift` falhou em 139 dos 141 prontuários (os outros 2 foram "skipped" por
+falta de texto-fonte). Todas as 139 falhas têm exatamente a mesma mensagem de erro e
+foram gravadas em disco dentro de uma janela de apenas ~3 segundos
+(2026-07-09, 16:11:07 a 16:11:10) — tempo incompatível com a duração real de uma
+query ao GraphRAG (minutos por chamada). Isso indica que as falhas ocorreram antes
+mesmo de qualquer chamada ao LLM, ainda na etapa de inicialização do subprocesso.
+
+
+EVIDÊNCIAS
+----------
+1. Erro idêntico em todos os 139 arquivos de cache (results/rag_comparison/raw/drift/*.json):
+
+   ERROR: exit 2 — Using CPython 3.11.14
+   error: failed to remove file
+   `...\anamnese\.venv\lib64`: Acesso negado. (os error 5)
+
+2. Todos os 139 arquivos foram escritos em ~3 segundos — impossível para queries reais
+   ao GraphRAG, que levam minutos cada. Ou seja, o processo falhou na etapa de
+   preparação do ambiente, não na consulta em si.
+
+3. Os métodos `local` e `basic`, que usam exatamente o mesmo código de coleta,
+   completaram com sucesso 139/141 cada, sem nenhuma ocorrência desse erro.
+
+4. O método `global` (parcialmente coletado) apresentou 7 falhas de um tipo
+   diferente, mas com a mesma raiz: processos derrubados (exit 130) com
+   tracebacks Python quebrando NO MEIO de um `import` de pacotes instalados
+   (jinja2, litellm, openai) dentro de `.venv/lib/python3.11/site-packages/`.
+
+
+CAUSA
+-----
+O comando de coleta chama o GraphRAG assim:
+
+    uv run python run_graphrag.py query ...
+
+Por padrão, `uv run` executa um `uv sync` implícito antes de rodar qualquer
+comando, para garantir que o ambiente virtual (.venv) está atualizado em relação
+ao `pyproject.toml`/`uv.lock`.
+
+O notebook coleta os prontuários em paralelo via `ThreadPoolExecutor` com
+`MAX_WORKERS = 4`, ou seja, até 4 processos `uv run` são disparados ao mesmo
+tempo. Cada um desses processos tenta, simultaneamente, verificar/reparar o
+mesmo `.venv` — inclusive o symlink `lib64 -> lib` dentro dele.
+
+O projeto está em um disco montado do Windows dentro do WSL (caminho
+`/mnt/c/...`). Nesse tipo de sistema de arquivos, operações concorrentes de
+escrita/remoção no mesmo arquivo não são toleradas da mesma forma que em um
+disco Linux nativo: quando um processo já está com o arquivo aberto/bloqueado,
+outro processo tentando removê-lo ou recriá-lo recebe "Acesso negado"
+(equivalente ao erro do Windows ERROR_ACCESS_DENIED, os error 5).
+
+Uma vez que um dos `uv sync` concorrentes falha e deixa o `.venv` em estado
+parcialmente modificado, todas as chamadas seguintes de `uv run` (mesmo em
+threads diferentes, mesmo em execuções subsequentes) voltam a falhar da mesma
+forma imediatamente — o que explica por que praticamente 100% dos prontuários
+do método `drift` falharam de uma vez, com a mesma mensagem, em poucos segundos.
+
+Resumindo a cadeia causal:
+
+    MAX_WORKERS > 1
+        -> múltiplos `uv run` simultâneos
+        -> cada um dispara `uv sync` implícito
+        -> disputa concorrente pelo mesmo .venv em disco montado do Windows (WSL)
+        -> "Acesso negado" ao mexer no symlink .venv/lib64
+        -> .venv fica em estado inconsistente
+        -> todas as chamadas seguintes falham igual, quase instantaneamente
+
+Por que `local` e `basic` não sofreram o mesmo problema, se usam o mesmo código?
+Pura corrida de threads (race condition): nessas execuções, por timing, os
+processos `uv run` não chegaram a colidir na mesma operação de arquivo ao mesmo
+tempo. É um problema probabilístico, não determinístico — pode voltar a
+acontecer com qualquer método, inclusive `local`/`basic`, em uma próxima
+execução.
+
+
+SOLUÇÕES POSSÍVEIS
+-------------------
+1. (JÁ APLICADA no notebook) Usar `uv run --no-sync ...` em vez de `uv run ...`.
+   A flag `--no-sync` faz o `uv run` apenas executar o comando, sem checar ou
+   modificar o `.venv`/lockfile. Isso elimina a causa raiz, pois nenhum worker
+   mais tenta mexer no ambiente virtual durante a coleta. Testado manualmente
+   com 4 chamadas concorrentes (`uv run --no-sync python -c "print(...)"`) sem
+   nenhum erro de lock. Pré-requisito: rodar `uv sync` manualmente (uma vez,
+   fora do notebook) sempre que as dependências do projeto mudarem, já que o
+   `--no-sync` não vai fazer isso mais durante a coleta.
+
+2. (Alternativa, não aplicada) Reduzir `MAX_WORKERS` para 1 no notebook,
+   eliminando a concorrência entre processos `uv run`. Resolveria o problema,
+   mas tornaria a coleta ainda mais lenta (o método `global`, por exemplo, já
+   leva ~7-8 minutos por query; sem paralelismo o tempo total seria
+   multiplicado por `MAX_WORKERS`).
+
+3. (Alternativa, não aplicada) Mover o projeto (ou pelo menos o `.venv`) para
+   dentro do sistema de arquivos nativo do Linux/WSL (ex.: `~/projetos/...` em
+   vez de `/mnt/c/...`), evitando de vez as limitações de locking de arquivos
+   do NTFS/9p ao montar discos do Windows dentro do WSL. Resolve o problema de
+   forma mais definitiva (não só para este script, mas para qualquer operação
+   concorrente de arquivo no projeto), mas exige reorganizar onde o projeto
+   vive.
+
+4. (Complementar, não aplicada) Antes de cada rodada de coleta, garantir que o
+   cache do GraphRAG/`uv` está "quente" e o `.venv` já sincronizado com um
+   único `uv sync` prévio, e só então iniciar os workers com `--no-sync`. Isso
+   já é o comportamento recomendado ao adotar a solução 1.
+
+
+RECOMENDAÇÃO (causa nº1, do uv sync)
+-------------------------------------
+A solução 1 (`--no-sync`) já foi aplicada em `run_graphrag_query()` no notebook
+`scripts/avaliacao_comparativa_rag.ipynb` e é suficiente para resolver ESSA
+causa sem abrir mão do paralelismo. Não é necessário apagar os arquivos de
+cache com falha: a função `get_or_run` só considera um resultado "em cache"
+quando `success` ou `skipped` é `True`; registros com falha são
+automaticamente re-tentados na próxima execução da célula de coleta.
+
+Importante: essa era apenas a PRIMEIRA causa. Ver ADENDO abaixo — mesmo com
+`--no-sync`, o método `drift` continua falhando 100% das vezes, por um motivo
+completamente diferente e mais grave (índice incompleto).
+
+
+================================================================================
+ADENDO (2026-07-17): SEGUNDA CAUSA, INDEPENDENTE DA PRIMEIRA — ÍNDICE QUEBRADO
+================================================================================
+
+Após aplicar `--no-sync`, foi feito um teste isolado de uma query `drift` real
+(1 prontuário, results/rag_comparison/teste_drift_local_copy.json). O erro de
+"Acesso negado" no `.venv/lib64` NÃO ocorreu mais — a query rodou de verdade
+por 387.9 segundos (carregando os parquets do índice, etc.) antes de falhar
+com um erro totalmente diferente:
+
+    ValueError: Table 'default-community-full_content' was not found
+
+CAUSA (confirmada, determinística, reproduzida 3/3 vezes em teste isolado,
+sem nem precisar rodar o CLI completo):
+
+A tabela vetorial (LanceDB) `default-community-full_content` — usada pela
+etapa "primer" da busca `drift` logo no início da consulta, antes de qualquer
+chamada ao LLM (graphrag.api.query.drift_search_streaming ->
+get_embedding_store(community_full_content_embedding) ->
+read_indexer_report_embeddings) — nunca foi commitada de verdade durante a
+indexação. O dataset `.lance` dessa tabela tem o arquivo de fragmento em
+`data/*.lance`, mas NÃO tem a pasta `_versions/` (nem `_transactions/`) que o
+LanceDB/Lance usa para saber qual é a versão atual da tabela. Sem isso, o
+dataset é considerado inexistente:
+
+    Dataset at path .../default-community-full_content.lance was not found:
+    Not found: .../default-community-full_content.lance/_versions
+
+Por isso `lancedb.connect(...).table_names()` LISTA a tabela normalmente (é
+só uma listagem do nome das pastas em disco), mas `open_table()` sempre
+falha ao tentar efetivamente abri-la.
+
+Esse defeito existe IGUALMENTE em `experimentos/local` e em
+`experimentos/local copy` — ou seja, não é um problema específico de um dos
+dois índices, nem um problema do ambiente WSL/Windows (diferente da causa
+nº1): é um defeito de conteúdo do índice em si, muito provavelmente porque a
+etapa de indexação que gera os embeddings de `community.full_content`
+(workflow `generate_text_embeddings` do GraphRAG) foi interrompida ou falhou
+antes de finalizar o commit dessa tabela específica, enquanto a tabela
+`default-entity-description` (mesma etapa, embedding diferente) foi
+commitada com sucesso (tem `_versions/` com 55 versões, abre normalmente,
+26966 linhas).
+
+Isso também explica uma observação anterior, que parecia contraditória: por
+que o método `global` conseguiu completar boa parte das consultas (35/42
+com sucesso), enquanto `drift` falha 100% das vezes. A resposta é que
+`global` faz map-reduce diretamente sobre `community_reports.parquet` (não
+depende do vector store `community-full_content`), enquanto `drift` depende
+dessa tabela vetorial já na primeira etapa da consulta. Ou seja, `global`
+nunca chega a tocar na tabela quebrada; `drift` sempre toca, e sempre falha.
+
+SOLUÇÕES POSSÍVEIS (causa nº2)
+-------------------------------
+1. (Recomendada) Regenerar os embeddings de `community.full_content` —
+   rodar novamente (ou pela primeira vez, de forma completa) o workflow de
+   embeddings do GraphRAG (`generate_text_embeddings`, ex. via
+   `graphrag index --root <experimento> --data <output>` reindexando, ou o
+   comando equivalente restrito a esse workflow, se o CLI instalado
+   permitir). Isso deve recriar a tabela `default-community-full_content`
+   completa, com `_versions/` válido.
+
+2. (Alternativa, mais barata) Rodar a busca `drift` apontando para um índice
+   diferente que já tenha `default-community-full_content` corretamente
+   commitado, se algum dos outros diretórios em `experimentos/` (ex.
+   `exp-first`, `exp-second`, `mistral`, `datatest-copy`) tiver essa tabela
+   íntegra — precisa ser checado caso a caso com o mesmo teste usado aqui
+   (`lance.dataset(...).versions()` deve funcionar sem erro).
+
+3. (Alternativa, se reindexar não for viável agora) Excluir `drift` da
+   comparação do notebook, deixando explícito que esse método não pode ser
+   avaliado com o índice atual — igual ao que já foi feito com `basic` no
+   índice `experimentos/local` (que também não tem os embeddings
+   necessários). Evita gastar tempo de execução (~7+ min/query) em um
+   método que vai falhar sempre.
+
+RECOMENDAÇÃO FINAL
+-------------------
+As duas causas são independentes e ambas precisam estar resolvidas para o
+método `drift` funcionar: a causa nº1 (`uv sync` concorrente) já está
+corrigida com `--no-sync`. A causa nº2 (tabela `community-full_content` sem
+manifesto de versão) ainda não está corrigida e é a que está bloqueando o
+`drift` agora — requer reindexação (solução 1 acima) ou exclusão temporária
+do método da comparação (solução 3).
+
+
+================================================================================
+ADENDO 2 (2026-07-25): CAUSA Nº2 RESOLVIDA — E POR QUE A REINDEXAÇÃO SIMPLES
+NÃO FUNCIONOU DE PRIMEIRA
+================================================================================
+
+Ao tentar aplicar a solução 1 do adendo anterior (reindexar), a tentativa
+falhou logo de cara: `graphrag index --root "experimentos/local copy"`
+terminou com `ValueError: Table 'default-community-full_content' was not
+found` — o mesmo sintoma de sempre. Investigando o log completo em
+`experimentos/local copy/logs/indexing-engine.log`, ficou claro que essa
+tabela JÁ TINHA FALHADO A ESCREVER 3 VEZES na indexação original (2026-07-10),
+sempre com o mesmo erro real do Lance:
+
+    RuntimeError: lance error: LanceError(IO): failed to shutdown object
+    writer for .../default-community-full_content.lance/data/<hash>.lance:
+    Generic LocalFileSystem error: Unable to access metadata for
+    .../data/<hash>.lance#1: No such file or directory (os error 2)
+
+Ou seja, a causa raiz mais profunda é uma falha de I/O do próprio Lance
+(camada Rust) ao finalizar ("shutdown") a escrita de um fragmento de dados
+no disco montado do Windows via WSL (`/mnt/c/...`) — a mesma categoria de
+instabilidade da causa nº1 (uv sync), só que agora dentro do próprio
+LanceDB/Lance, não do `uv`. Isso deixou, desde 07-10, uma pasta
+`default-community-full_content.lance` com um arquivo de fragmento órfão em
+`data/` mas sem a pasta `_versions/` (manifesto de versão) — e por isso
+`lancedb.connect(...).table_names()` sempre listava a tabela (é só uma
+listagem de diretório), mas `open_table()` sempre falhava ao tentar abri-la
+de verdade. Isso criava um efeito cascata: como `LanceDBVectorStore.connect()`
+tenta abrir a tabela existente ANTES de decidir sobrescrevê-la, toda tentativa
+de reindexar batia nesse `open_table()` quebrado e morria ali, sem nunca
+chegar a tentar escrever de novo.
+
+PASSOS DA CORREÇÃO APLICADA:
+1. Apagada a pasta órfã `default-community-full_content.lance` (dado
+   inutilizável, comprovadamente sem manifesto válido) para quebrar o efeito
+   cascata do item acima.
+2. Reindexado de novo, ainda apontando para o disco montado do Windows — a
+   MESMA falha de I/O do Lance se repetiu uma 4ª vez, confirmando que o
+   problema é estrutural (o disco montado do Windows via WSL), não um acaso
+   de uma tentativa isolada.
+3. Contorno: alterado temporariamente `vector_store.default_vector_store.db_uri`
+   em `experimentos/local copy/settings.yaml` de `output/lancedb` (relativo,
+   dentro do `/mnt/c/...`) para um diretório nativo do Linux dentro do WSL
+   (`/home/mrysn/graphrag_lancedb_fix`, filesystem ext4). Reindexado
+   novamente (ainda usando o cache do LLM, então rápido) — dessa vez a
+   tabela commitou com sucesso (11 versões, 4639 linhas, batendo com o
+   número de community reports).
+4. A pasta `default-community-full_content.lance` já pronta (com manifesto
+   válido) foi copiada do diretório nativo de volta para
+   `experimentos/local copy/output/lancedb/` — uma cópia de arquivo simples
+   não sofre do mesmo problema de finalização de escrita do Lance, só a
+   ESCRITA AO VIVO via Lance/Rust é que é afetada.
+5. `db_uri` revertido para o valor original (`output/lancedb`) no
+   settings.yaml.
+
+VERIFICAÇÃO FINAL:
+- `lancedb.connect(...).open_table('default-community-full_content')` abre
+  normalmente no local original (`experimentos/local copy/output/lancedb`),
+  junto com as outras duas tabelas.
+- Uma query `drift` real de teste (mesmo prontuário usado antes, 10001436)
+  passou da etapa da tabela vetorial e chegou a fazer chamadas reais ao LLM
+  (etapa "primer" da busca drift) — parou apenas por
+  `litellm.exceptions.RateLimitError: Rate limit exceeded: free-models-per-min`,
+  uma limitação do tier gratuito do modelo no OpenRouter, não mais um bug
+  de índice ou de código.
+
+STATUS: causa nº2 RESOLVIDA. A causa nº1 (`--no-sync`) continua aplicada e
+válida. O que falta agora para rodar o `drift` nos 141 prontuários é lidar
+com o rate limit do tier gratuito do OpenRouter (ex.: reduzir `MAX_WORKERS`
+para 1 nas chamadas de `drift`, já que cada query faz várias chamadas de LLM
+em sequência na etapa "primer", ou usar um modelo pago/tier com limite maior).

@@ -1,0 +1,2 @@
+# Scripts shell devem usar LF (evita "No such file" no shebang em Linux/WSL).
+*.sh text eol=lf
