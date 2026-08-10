@@ -11,6 +11,19 @@ os prompts de indexação padrão do GraphRAG, outro com os prompts ajustados
 para hepatologia em `prompts/index/prompt-tuning/` — e a pergunta é se o
 tuning da indexação melhora a extração.
 
+## Motivação
+
+O prompt usado na etapa de *indexação* (extração de entidades, relatórios de
+comunidade) define o vocabulário e a granularidade do que o grafo consegue
+representar — um prompt genérico tende a extrair entidades amplas
+(`PERSON`, `EVENT`), enquanto um prompt ajustado ao domínio pode extrair
+diretamente `CONDICAO_MEDICA`/`DIAGNÓSTICO`. Ge et al. (2024, *How I
+Approach It: Prompt Engineering for GAI in Gastroenterology and
+Hepatology*) discutem exatamente esse ganho de engenharia de prompt
+aplicada ao domínio clínico gastro-hepatológico. Este experimento testa se
+esse ganho se sustenta quando medido como acurácia de classificação contra
+o ground truth, e não só qualitativamente.
+
 ## Pré-requisitos
 
 - Dois índices GraphRAG já construídos (`graphrag index`): um baseline
