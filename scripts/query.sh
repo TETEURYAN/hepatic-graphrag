@@ -131,7 +131,7 @@ run_query_from_template() {
   
   log_info "Running ${method} query: $(basename ${query_template_file})"
   
-  if graphrag query \
+  if uv run graphrag query \
     --method "${method}" \
     --query "${query}" \
     --root "${ROOT_DIR}" \
