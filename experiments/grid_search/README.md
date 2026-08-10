@@ -16,6 +16,20 @@ prontuários).
 | S7 | drift | 1 |
 | S8 | drift | 2 |
 
+## Motivação
+
+O `community_level` controla o quão agregada é a vizinhança do grafo usada
+como contexto — nível mais alto agrupa comunidades maiores, aproximando nós
+mais distantes entre si antes de responder. A hipótese testada aqui é se
+recuperar contexto de nós mais distantes (community-level mais alto) produz
+respostas mais satisfatórias do que uma vizinhança mais restrita, na linha
+do que Wu et al. (2024, Medical Graph RAG) propõem com o U-Retrieval —
+combinar recuperação top-down (mais ampla, hierárquica) com refinamento
+bottom-up (mais preciso, local) para equilibrar abrangência de contexto com
+indexação precisa. Cruzar isso com os 4 métodos de busca do GraphRAG separa
+o efeito da profundidade/abrangência da vizinhança do efeito do algoritmo de
+busca em si.
+
 ## Pré-requisitos
 
 - Repositório clonado, dependências instaladas (`uv sync` ou `bash setup.sh`).

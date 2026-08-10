@@ -87,8 +87,20 @@ refaz o que falta. Os resultados brutos (`resultados_grid/`,
 `resultados_avaliacao/`) não são versionados; as figuras escolhidas para o
 relatório final do TCC ficam em [`figures/`](figures/).
 
-## Fora de escopo
+## Referências
 
-Sem interface web, API REST, banco de dados dedicado, autenticação, Docker ou
-orquestração (Airflow etc.). É um conjunto de scripts/notebooks de pesquisa,
-pensado para ser rodado localmente e reproduzido por quem revisar o TCC.
+- Alkhalaf, M., Yu, P., Yin, M., & Deng, C. (2024). Applying generative AI with retrieval augmented generation to summarize and extract key clinical information from electronic health records. *Journal of Biomedical Informatics*, 156, 104662. https://doi.org/10.1016/j.jbi.2024.104662
+- Gadotti, A., Rocher, L., Houssiau, F., Creţu, A.-M., & de Montjoye, Y.-A. Anonymization: The imperfect science of using data while preserving privacy. *Science Advances*, 10(29), eadn7053. https://doi.org/10.1126/sciadv.adn7053
+- Ge, J., Chen, I. Y., Pletcher, M. J., & Lai, J. C. (2024). How I Approach It: Prompt Engineering for Generative Artificial Intelligence (GAI) in Gastroenterology and Hepatology. *The American Journal of Gastroenterology*.
+- Johnson, A. E. W., Bulgarelli, L., Shen, L., Gayles, A., Shammout, A., Horng, S., Pollard, T. J., Hao, S., Moody, B., Gow, B., Lehman, L.-w. H., Celi, L. A., & Mark, R. G. (2023). MIMIC-IV, a freely accessible electronic health record dataset. *Scientific Data*, 10(1), 1. https://doi.org/10.1038/s41597-022-01899-x
+- Khanbhai, M., Anyadi, P., Symons, J., Flott, K., Darzi, A., & Mayer, E. (2021). Applying natural language processing and machine learning techniques to patient experience feedback: a systematic review. *BMJ Health & Care Informatics*, 28(1), e100262. https://doi.org/10.1136/bmjhci-2020-100262
+- Lahat, A., Shachar, E., Avidan, B., Glicksberg, B., & Klang, E. (2023). Evaluating the Utility of a Large Language Model in Answering Common Patients' Gastrointestinal Health-Related Questions: Are We There Yet? *Diagnostics*, 13(11), 1950. https://doi.org/10.3390/diagnostics13111950
+- Lee, E. B., Heo, G. E., Choi, C. M., & Song, M. (2022). MLM-based typographical error correction of unstructured medical texts for named entity recognition. *BMC Bioinformatics*, 23(1), 486. https://doi.org/10.1186/s12859-022-05035-9
+- Miao, J., Thongprayoon, C., Suppadungsuk, S., Garcia Valencia, O. A., & Cheungpasitporn, W. (2024). Integrating Retrieval-Augmented Generation with Large Language Models in Nephrology: Advancing Practical Applications. *Medicina*, 60(3), 445. https://doi.org/10.3390/medicina60030445
+- Nascimento, M. R. S., Silva, V. A. F., Souza, G., Lima, K. G. S., Araújo, E. T. M., Souza, E. R., Turet, J., & Carvalho, V. D. H. (2025). Extração de Notícias sobre Segurança Pública para Desenvolvimento de Corpora em português: uma análise preliminar em cidades do nordeste brasileiro. *Anais do Workshop sobre as Implicações da Computação na Sociedade (WICS)*. https://sol.sbc.org.br/index.php/wics/article/view/35954
+- Neha, F., Bhati, D., & Shukla, D. K. (2025). Retrieval-Augmented Generation (RAG) in Healthcare: A Comprehensive Review. *AI*, 6(9), 226. https://doi.org/10.3390/ai6090226
+- Sarcinelli, J. L. L. L., Teixeira, M. L. G., Paiva, J. B., & Silva, D. F. (2025). MariNER: A Dataset for Historical Brazilian Portuguese Named Entity Recognition. *Anais da Brazilian Conference on Intelligent Systems (BRACIS)*. https://sol.sbc.org.br/index.php/bracis/article/view/40897
+- Stammers, M., Ramgopal, B., Owusu Nimako, A., Vyas, A., Nouraei, R., Metcalf, C., Batchelor, J., Shepherd, J., & Gwiggner, M. (2025). A foundation systematic review of natural language processing applied to gastroenterology & hepatology. *BMC Gastroenterology*, 25(1), 58. https://doi.org/10.1186/s12876-025-03608-5
+- Wang, M., Shen, Y., Zhao, B., Zhou, X., Sun, L., & Liu, X. (2025). Enhancing LLM-based clinical reasoning in anesthesiology via graph-augmented retrieval and explainable generation. *Health Information Science and Systems*, 13(1), 62. https://doi.org/10.1007/s13755-025-00379-x
+- Wu, J., Zhu, J., Qi, Y., Chen, J., Xu, M., Menolascina, F., & Grau, V. (2024). Medical Graph RAG: Towards Safe Medical Large Language Model via Graph Retrieval-Augmented Generation. *arXiv:2408.04187*. https://doi.org/10.48550/ARXIV.2408.04187
+- Yang, R., Ning, Y., Keppo, E., Liu, M., Hong, C., Bitterman, D. S., Ong, J. C. L., Ting, D. S. W., & Liu, N. (2025). Retrieval-augmented generation for generative artificial intelligence in health care. *npj Health Systems*, 2(1), 2. https://doi.org/10.1038/s44401-024-00004-1
