@@ -58,7 +58,18 @@ anonimizado de forma imperfeita) está em uso. Ver
 ## Instalação
 
 ```bash
-bash setup.sh
+graphrag index --root graphrag
+```
+
+Após a indexação, o grafo resultante poderá ser consultado via:
+```bash
+graphrag query --root graphrag
+```
+
+---
+
+## Estrutura do Projeto
+
 ```
 
 Isso instala o `uv` (se necessário), cria o `.venv` e instala as dependências
