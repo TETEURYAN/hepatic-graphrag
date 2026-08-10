@@ -1,0 +1,9 @@
+﻿Doença,Precision,Recall,F1,Suporte
+Cirrose hepática,0.409,0.562,0.474,16
+Esquistossomose,0.818,0.562,0.667,16
+Esteatose hepática,0.811,0.732,0.769,41
+Hemorragia digestiva alta,0.5,1.0,0.667,5
+Hepatite B,0.5,0.3,0.375,10
+Hepatite C,0.75,0.6,0.667,5
+Hipertensão portal,0.438,0.467,0.452,15
+PBE,0.5,1.0,0.667,1

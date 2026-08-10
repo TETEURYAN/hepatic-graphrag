@@ -1,0 +1,1 @@
+Quais pacientes do corpus têm mais de uma descompensação hepática registrada?
