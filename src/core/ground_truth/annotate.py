@@ -15,30 +15,34 @@ Uso:
 import os
 import csv
 import json
+import sys
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
-# =============================================================================
-# CONFIGURAÇÃO — ajuste os caminhos
-# =============================================================================
-
 _REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
-# CSV original com os prontuários (colunas: prontuario, descricao, ...)
-CSV_PRONTUARIOS   = _REPO_ROOT / "experimentos" / "local" / "input" / "data-hepato-sem-anonimizacao.csv"
+from src.core.paths import (  # noqa: E402
+    ANOTACAO_PROGRESSO,
+    CSV_ORIGINAL,
+    DATASET_TUNED_CSV,
+    GROUND_TRUTH_CSV,
+)
+
+# =============================================================================
+# CONFIGURAÇÃO — caminhos vêm de src/core/paths.py (sobrescrevíveis via .env)
+# =============================================================================
+
+CSV_PRONTUARIOS   = CSV_ORIGINAL         # CSV original (colunas: prontuario, descricao, ...)
 COL_ID            = "prontuario"        # coluna identificadora
 COL_TEXTO         = "descricao"         # coluna com o texto clínico
 
-# Dataset gerado por build_datasets.py (--type prompt-tuning) — ajuste para
-# o arquivo mais recente (nome inclui timestamp)
-CSV_GRAPHRAG      = _REPO_ROOT / "results" / "dataset" / "dataset_record_prompt-tuning_SUBSTITUA.csv"
+CSV_GRAPHRAG      = DATASET_TUNED_CSV   # dataset gerado por build_datasets.py (--type prompt-tuning)
 
-# Arquivo de progresso (permite pausar e continuar)
-ARQUIVO_PROGRESSO = _REPO_ROOT / "progresso" / "anotacao_progresso.json"
-
-# Arquivo de saída final
-ARQUIVO_SAIDA     = _REPO_ROOT / "progresso" / "ground_truth_anotado.csv"
+ARQUIVO_PROGRESSO = ANOTACAO_PROGRESSO  # permite pausar e continuar
+ARQUIVO_SAIDA     = GROUND_TRUTH_CSV    # este script é quem gera esse arquivo
 
 # =============================================================================
 # CLASSES E HIERARQUIA

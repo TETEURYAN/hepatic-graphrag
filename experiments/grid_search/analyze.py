@@ -13,7 +13,6 @@
 
 # %%
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -21,16 +20,25 @@ import numpy as np
 import pandas as pd
 from IPython.display import display
 
-_HERE = Path(__file__).resolve().parent
-_REPO_ROOT = _HERE.parents[1]
-if str(_HERE) not in sys.path:
-    sys.path.insert(0, str(_HERE))
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from src.core.paths import (  # noqa: E402
+    GROUND_TRUTH_CSV,
+    PROGRESSO_GRID_DIR,
+    RESULTADOS_GRID_DIR,
+    bootstrap_sys_path,
+)
+
+bootstrap_sys_path(Path(__file__).resolve().parent)
 
 from parser_doencas import extrai_doenca  # noqa: E402
 
-GROUND_TRUTH = _REPO_ROOT / "progresso" / "ground_truth_anotado.csv"
-OUTPUT_DIR = _REPO_ROOT / "resultados_grid"
-PROGRESSO_DIR = _REPO_ROOT / "progresso_grid"
+# Caminhos vêm de src/core/paths.py (sobrescrevíveis via .env)
+GROUND_TRUTH = GROUND_TRUTH_CSV
+OUTPUT_DIR = RESULTADOS_GRID_DIR
+PROGRESSO_DIR = PROGRESSO_GRID_DIR
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 

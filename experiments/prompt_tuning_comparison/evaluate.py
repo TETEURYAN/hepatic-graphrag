@@ -13,6 +13,7 @@ Saída (em resultados_avaliacao/):
   - comparacao_prontuario_a_prontuario.csv (se houver baseline)
 """
 
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -28,18 +29,24 @@ from scipy.stats import wilcoxon
 import warnings
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# CONFIGURAÇÃO — ajuste DATASET_TUNED_CSV/DATASET_BASE_CSV para os arquivos
-# gerados por build_datasets.py (nome inclui timestamp, então mude a cada rodada)
-# =============================================================================
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
-GROUND_TRUTH_CSV   = _REPO_ROOT / "progresso" / "ground_truth_anotado.csv"
-DATASET_TUNED_CSV  = _REPO_ROOT / "results" / "dataset" / "dataset_record_prompt-tuning_SUBSTITUA.csv"
-DATASET_BASE_CSV   = None  # preencha se tiver o baseline, ex.: dataset_record_no-prompt-tuning_*.csv
+from src.core.paths import (  # noqa: E402
+    DATASET_BASE_CSV,
+    DATASET_TUNED_CSV,
+    GROUND_TRUTH_CSV,
+    RESULTADOS_AVALIACAO_DIR,
+)
 
-OUTPUT_DIR         = _REPO_ROOT / "resultados_avaliacao"
+# =============================================================================
+# CONFIGURAÇÃO — DATASET_TUNED_CSV/DATASET_BASE_CSV vêm de src/core/paths.py,
+# sobrescrevíveis via .env (o nome do arquivo inclui timestamp, então mude a
+# variável de ambiente a cada rodada de build_datasets.py em vez de editar aqui)
+# =============================================================================
+
+OUTPUT_DIR = RESULTADOS_AVALIACAO_DIR
 
 COL_PRONT          = "prontuario_id"
 COL_CONDICAO       = "condicao_normalizada"

@@ -24,7 +24,6 @@
 # ## Célula 1 — Configuração
 
 # %%
-import os
 import re
 import subprocess
 import sys
@@ -36,29 +35,35 @@ import ipywidgets as widgets
 import pandas as pd
 from IPython.display import clear_output, display
 
-# Bootstrap de sys.path — permite rodar este script independente do cwd
-# (importa parser_doencas, deste mesmo diretório, e src.core, da raiz do repo)
-_HERE = Path(__file__).resolve().parent
-_REPO_ROOT = _HERE.parents[1]
-for _p in (_HERE, _REPO_ROOT):
-    if str(_p) not in sys.path:
-        sys.path.insert(0, str(_p))
+# Bootstrap mínimo — só o suficiente pra importar src.core.paths, que resolve
+# o resto (inclusive o path deste diretório, pra `import parser_doencas`)
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from src.core.paths import (  # noqa: E402
+    CSV_ORIGINAL,
+    GRAPHRAG_DATA,
+    GRAPHRAG_ROOT,
+    GROUND_TRUTH_CSV,
+    PROGRESSO_GRID_DIR,
+    RESULTADOS_GRID_DIR,
+    bootstrap_sys_path,
+)
+
+bootstrap_sys_path(Path(__file__).resolve().parent)
 
 from parser_doencas import DOENCAS_VALIDAS, extrai_doenca  # noqa: E402
 from src.core.query.progress import ProgressTracker  # noqa: E402
 from src.core.query.runner import default_timeout, run_graphrag_query  # noqa: E402
 
-# ── AJUSTE ESTES CAMINHOS (ou defina as env vars equivalentes) ──────────────
-GRAPHRAG_ROOT = Path(os.environ.get("GRAPHRAG_ROOT", _REPO_ROOT / "experimentos" / "local copy"))
-GRAPHRAG_DATA = Path(os.environ.get("GRAPHRAG_DATA", GRAPHRAG_ROOT / "output"))
-GROUND_TRUTH = _REPO_ROOT / "progresso" / "ground_truth_anotado.csv"
-CSV_ORIGINAL = _REPO_ROOT / "experimentos" / "local" / "input" / "data-hepato-sem-anonimizacao.csv"
+# Caminhos vêm de src/core/paths.py (sobrescrevíveis via .env) — ajuste lá,
+# não aqui.
+GROUND_TRUTH = GROUND_TRUTH_CSV
 COL_ID = "prontuario"
 COL_TEXTO = "descricao"
-
-# Pasta onde os resultados serão salvos
-OUTPUT_DIR = _REPO_ROOT / "resultados_grid"
-PROGRESSO_DIR = _REPO_ROOT / "progresso_grid"
+OUTPUT_DIR = RESULTADOS_GRID_DIR
+PROGRESSO_DIR = PROGRESSO_GRID_DIR
 
 # Pausa entre queries (segundos) — evita rate limiting
 PAUSA_ENTRE_QUERIES = 6
