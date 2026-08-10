@@ -5,11 +5,11 @@
 <div align="center" style="max-width: 850px; margin: 0 auto;">
 <table>
   <tr>
-    <td valign="top" style="padding-right: 16px; width: 150px;">
+    <td valign="top" style="padding-right: 20px; width: 150px;">
       <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" width="140" />
     </td>
     <td valign="top" style="padding-left: 16px;">
-      <p>Pipeline que avalia o <strong>GraphRAG</strong> como classificador da doença hepática principal de um paciente a partir de prontuários eletrônicos anonimizados. Cada prontuário vira um documento indexado num grafo de conhecimento; a doença é obtida perguntando ao índice e extraindo o diagnóstico da resposta em texto livre do LLM.</p>
+      <p>Pipeline que avalia o <a href="https://github.com/microsoft/graphrag"><strong>GraphRAG</strong></a> (implementação oficial da Microsoft) como classificador da doença hepática principal de um paciente a partir de prontuários eletrônicos anonimizados. Cada prontuário vira um documento indexado num grafo de conhecimento; a doença é obtida perguntando ao índice e extraindo o diagnóstico da resposta em texto livre do LLM.</p>
       <p>Dois eixos são avaliados contra um ground truth anotado manualmente (141 prontuários): o <strong>método de busca</strong> do GraphRAG (<code>basic</code>/<code>local</code>/<code>global</code>/<code>drift</code>, em dois níveis de comunidade) e o efeito do <strong>prompt-tuning</strong> na etapa de indexação (extração de entidades e relatórios de comunidade).</p>
     </td>
   </tr>
@@ -42,8 +42,19 @@ longo do caminho e os resultados obtidos até agora.
 
 - Python 3.11 (fixado em `.python-version`).
 - [uv](https://docs.astral.sh/uv/) — gerencia o ambiente virtual e as dependências.
-- Uma API key do [OpenRouter](https://openrouter.ai/keys), necessária para as chamadas ao LLM (`GRAPHRAG_API_KEY`).
+- Uma API key do [OpenRouter](https://openrouter.ai/keys), necessária para as chamadas ao LLM (`GRAPHRAG_API_KEY`) — **ou** um LLM rodando localmente (ver "Privacidade" abaixo).
 - O dataset bruto de prontuários em `data/` — **não incluído no repositório** por conter dado clínico sensível; ver a seção de dados sensíveis do [log de operações](docs/log_operacoes.md).
+
+## Privacidade
+
+As queries do GraphRAG (indexação e busca) não precisam de um provedor
+externo — o `settings.yaml` pode apontar `api_base` para um LLM rodando
+localmente (Ollama, LM Studio etc.) em vez da OpenRouter, garantindo que
+nenhum trecho de prontuário saia da máquina em nenhuma etapa do pipeline.
+Essa é a opção recomendada quando o dataset real (não anonimizado ou
+anonimizado de forma imperfeita) está em uso. Ver
+[graphrag_config/README.md](graphrag_config/README.md) para como trocar o
+`api_base`.
 
 ## Instalação
 

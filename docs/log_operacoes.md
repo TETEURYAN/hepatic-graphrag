@@ -67,7 +67,9 @@ normalizada para minúsculo — `in` nunca encontra correspondência nesse caso.
 
 **Resultado obtido** (reprocessamento dos 8 sistemas do grid, 141 prontuários,
 ground truth em `progresso/ground_truth_anotado.csv`, excluindo a classe
-`nenhuma` da avaliação):
+`nenhuma` da avaliação). As queries do grid foram executadas com o modelo
+**gpt-oss-120b rodando localmente** (não via OpenRouter), garantindo que
+nenhum trecho de prontuário saísse da máquina durante a coleta:
 
 | Sistema | Modo | Level | Accuracy | F1 macro | F1 weighted | Cohen's Kappa | MCC |
 |---|---|---|---|---|---|---|---|
