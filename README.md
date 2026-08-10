@@ -1,154 +1,92 @@
-# Anonimização e Análise Longitudinal de Prontuários Eletrônicos | GraphRag
+# Análise Longitudinal de Prontuários Eletrônicos com GraphRAG
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/91018438/204195385-acc6fcd4-05a7-4f25-87d1-cb7d5cc5c852.png" alt="animated" />
 </p>
 
-Este projeto implementa um sistema completo para **anonimização de prontuários eletrônicos** e **análise longitudinal de evoluções clínicas**, integrando um pipeline de pré-processamento compatível com o **GraphRAG**.
-
-O sistema foi projetado para garantir a **privacidade de dados sensíveis** em contextos clínicos, permitindo a **construção de grafos de conhecimento** sobre textos anonimizados, com o objetivo de estudar padrões e trajetórias clínicas ao longo do tempo.
-
----
-
-## Núcleos Principais 
-
-### 1. Núcleo de Anonimização (`src/core/anonymization`)
-Responsável por todo o fluxo de **carregamento, limpeza e validação** dos dados clínicos.
-
-#### Etapas realizadas:
-1. **Leitura dos datasets** em formato `.csv` (pasta `data/`);
-2. **Normalização das colunas** e detecção automática de separadores;
-3. **Remoção de nomes próprios** e entidades sensíveis com o modelo spaCy (`pt_core_news_sm`);
-4. **Validação da anonimização**, verificando:
-   - presença residual de nomes ou entidades (`PER`, `LOC`, `ORG`);
-   - padrões sensíveis (datas, CPFs, telefones);
-   - consistência entre colunas `descricao` e `descricao_anonimizada`.
-
-#### Resultados:
-- Relatórios `.txt` com inconsistências e exemplos de falhas de anonimização;
-- Log estruturado de entidades detectadas e padrões sensíveis.
+Projeto de TCC que avalia o **GraphRAG** como classificador da doença hepática
+principal de um paciente a partir de prontuários eletrônicos anonimizados,
+comparando métodos de busca (`basic`/`local`/`global`/`drift`) e o efeito de
+prompt-tuning na indexação.
 
 ---
 
-### 2. Núcleo de Pré-Processamento para GraphRAG (`src/core/preprocess`)
-Após a anonimização, este núcleo transforma os textos clínicos em **entradas compatíveis com o GraphRAG**, permitindo análise contextual via grafos semânticos.
+## Estrutura do projeto
 
-#### Funções principais:
-- Geração de diretórios `input/` com os textos anonimizados;
-- Criação da estrutura esperada pelo **indexador do GraphRAG**, incluindo:
-  - `input/texts/*.txt` → textos clínicos processados;
-  - `settings.yaml` → configurações do pipeline;
-  - `prompts/` → templates de extração (podem ser adaptados por domínio).
+```
+.
+├── setup.sh                  # instala uv + ambiente virtual
+├── graphrag_config/           # settings.yaml de referência do GraphRAG
+├── prompts/                   # prompts de indexação e de query (por doença,
+│                               #   meta-prompts, extração de conhecimento)
+├── src/core/                  # biblioteca compartilhada entre os experimentos
+│   ├── patches/                #   hotfixes necessários antes de `graphrag query/index`
+│   ├── query/                  #   execução de query (runner.py) e progresso resumível
+│   ├── dataset/                #   split_dataset.py — divide o CSV bruto em documentos
+│   └── ground_truth/           #   anotação interativa do ground truth
+├── experiments/
+│   ├── grid_search/            # 8 sistemas (método × community-level) vs. ground truth
+│   └── prompt_tuning_comparison/  # índice com vs. sem prompt-tuning na indexação
+├── figures/                   # PNGs/CSVs de resultado prontos para publicação
+├── docs/                      # arquitetura, metodologia, guia de uso do GraphRAG
+└── archive/                   # código/notebooks/docs supersedidos, mantidos como
+                                #   referência histórica (não fazem parte do pipeline ativo)
+```
 
-#### Execução do indexador:
+**Nunca versionados** (`.gitignore`): `data/` (dataset bruto), `experimentos/`
+(índices GraphRAG locais), `input/`, `results/`, `progresso*/`,
+`resultados_*/` — tudo derivado do dataset ou contendo texto de prontuário
+real. Ver `docs/log_operacoes.md` para o histórico de por que cada coisa está
+onde está.
+
+## Pré-requisitos
+
+- [uv](https://github.com/astral-sh/uv)
+- Uma chave de API compatível com OpenRouter (`GRAPHRAG_API_KEY`) — copie
+  `.env.example` para `.env` e preencha.
+- O dataset bruto em `data/` (não incluído no repositório — dado sensível).
+
+## Setup
+
 ```bash
-graphrag index --root graphrag
+bash setup.sh          # instala uv + cria .venv + instala dependências
+cp .env.example .env   # preencha GRAPHRAG_API_KEY
 ```
 
-Após a indexação, o grafo resultante poderá ser consultado via:
-```bash
-graphrag query --root graphrag
-```
+## Fluxo de reprodução
 
----
-
-## 🧱 Estrutura do Projeto
-
-```
-hepatic-graphrag/
-├── data/                     # Datasets clínicos em csv
-├── input/                    # Textos prontos para indexação no GraphRAG
-├── src/
-│   └── core/
-│       ├── anonymization/    # Núcleo de anonimização e validação
-│       │   ├── facade.py
-│       │   ├── validator/
-│       │   ├── nlp/
-│       │   ├── explorer/
-│       │   ├── loader/
-│       │   └── report/
-│       └── preprocess/       # Núcleo de pré-processamento dos inputs
-├── main.py                   # Interface de linha de comando
-├── Makefile                  # Automação com uv
-├── pyproject.toml            # Configuração do ambiente Python
-└── README.md
-```
-
----
-
-## Como Executar o Sistema
-
-O projeto utiliza o **[uv](https://github.com/astral-sh/uv)** como gerenciador de ambientes.  
-Você pode configurar e rodar tudo automaticamente via `Makefile`.
-
-### Instalação
-
-1. Crie e ative o ambiente virtual:
-```bash
-make setup
-```
-
-2. Atualize as variáveis
-```bash
-uv venv
-uv pip install -r pyproject.toml
-```
-
-### ▶Execução
-
-Para rodar o sistema interativo:
-```bash
-make run
-```
-
-ou manualmente:
-```bash
-uv run python main.py
-```
-
-### Limpeza
-Remove o ambiente e caches temporários:
-```bash
-make clean
-```
-
----
-
-## Fluxo de Uso
-
-1. **O dataset deverá estar** na pasta `data/`.
-2. Execute o sistema:
+1. **Dividir o dataset por documento** (o CSV bruto tem várias linhas por
+   prontuário, não um documento por arquivo):
    ```bash
-   make run
+   uv run python src/core/dataset/split_dataset.py \
+     --csv data/coluna-evolucoes_anonimizadas.csv \
+     --output-dir input/texts
    ```
-3. Escolha:
-   - **[1]** Validar anonimização;
-   - **[2]** Gerar inputs compatíveis com GraphRAG.
-4. Verifique os resultados:
-   - Arquivos `.txt` com relatórios em `output/`;
-   - Estrutura `input/` pronta para o comando `graphrag index`.
+2. **Indexar** com o GraphRAG (ver `graphrag_config/README.md` para montar o
+   `settings.yaml` + prompts de um novo índice):
+   ```bash
+   uv run graphrag index --root <seu_indice>
+   ```
+3. **Rodar um experimento** — cada um em `experiments/<nome>/` tem seu
+   próprio `README.md` com o passo a passo específico:
+   - [`experiments/grid_search/`](experiments/grid_search/README.md):
+     compara os 4 métodos de busca × 2 community-levels no mesmo índice.
+   - [`experiments/prompt_tuning_comparison/`](experiments/prompt_tuning_comparison/README.md):
+     compara indexação com vs. sem prompt-tuning.
 
----
+Resultados de cada experimento (métricas, testes estatísticos, figuras) vão
+para diretórios não versionados (`resultados_grid/`, `resultados_avaliacao/`)
+— as figuras finais escolhidas para publicação são copiadas manualmente para
+`figures/`.
 
-## Tecnologias e Dependências
+## Documentação
 
-- **Python 3.10+**
-- **uv** — ambiente e instalação de dependências
-- **spaCy** com modelo `pt_core_news_sm`
-- **pandas** para manipulação de dados tabulares
-- **GraphRAG** (para indexação e consultas em grafos semânticos)
-
----
-
-## Objetivo Científico
-
-Este projeto faz parte de um estudo sobre **PLN à saúde**, com foco em:
-- Avaliar o progresso clínico longitudinal;
-- Analisar padrões de evolução textual em prontuários;
-- Correlacionar trajetórias de pacientes por meio de **grafos de conhecimento**.
-
----
+- `docs/arquitetura.md`, `docs/metodologia.md`, `docs/guia-graphrag.md`: guias gerais.
+- `docs/log_operacoes.md`: log cronológico do que foi feito no código, o que
+  segue em uso e o que ficou obsoleto.
+- `archive/`: código, notebooks e docs de fases anteriores do projeto,
+  preservados por valor histórico/metodológico mas fora do pipeline ativo.
 
 ## Licença
-Distribuído sob a licença MIT.  
-Sinta-se livre para adaptar, expandir e integrar o sistema em fluxos de pesquisa ou aplicações clínicas.
+
+Distribuído sob a licença MIT.
