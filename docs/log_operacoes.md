@@ -84,3 +84,43 @@ Melhor sistema por F1 macro: **S4 (local, community-level 2)**, com F1 macro
 0.363 e Kappa 0.482. Antes da correção, essas métricas eram degeneradas — a
 coluna `doenca_prevista` era `nao_identificado` em praticamente 100% dos
 registros, o que tornava qualquer classificador equivalente a chute.
+
+## 2026-08-10 — Refatoração do repositório
+
+O repositório local estava desalinhado do GitHub havia meses: ~50 arquivos
+soltos na raiz nunca commitados, misturando pipeline ativo, scaffolding já
+consumido e scripts de debug pontual; dados sensíveis (`.env`,
+`progresso*/`, `resultados_*/`, um `patients.txt` com iniciais reais de
+paciente) sem proteção no `.gitignore`; `prompts/query/insight/output/` com
+nome real de paciente no filename dentro de uma pasta versionada.
+
+**Removido/arquivado** (`src/core` antigo — órfão desde RAG-03/RAG-05, ver
+seções acima): `anonymization/` → `archive/`; `preprocess/` e `analysis/`
+apagados; `main.py` e alvo `run` do `makefile` removidos.
+
+**Novo `src/core`** — infraestrutura de fato compartilhada entre os dois
+experimentos do projeto: `patches/` (hotfixes do GraphRAG/litellm),
+`query/runner.py` + `progress.py` (unificam duas implementações duplicadas
+de chamada ao `graphrag query`, uma em `experimentos_graphrag.py` outra em
+`run_experiments.py` — a segunda ganhou suporte a `--community-level` e
+progresso resumível, que não tinha), `dataset/split_dataset.py` (novo — o
+CSV bruto nunca tinha sido dividido em um documento por prontuário),
+`ground_truth/annotate.py` (ex-`note_record.py`).
+
+**`experiments/`** — separa as duas baterias de query que existiam
+misturadas na raiz: `grid_search/` (método × community-level, mesmo
+índice) e `prompt_tuning_comparison/` (índice com vs. sem prompt-tuning),
+cada um com `README.md` de reprodução. `build_datasets.py` unifica três
+scripts quase duplicados de montagem de dataset; `evaluate.py` venceu a
+reconciliação com um script concorrente (`evaluate_classifier.py`) por ter
+bootstrap CI, McNemar e separação de falsos-positivos-puros.
+
+**Descoberta durante a reconciliação**: `python_query/analyse.py`, não
+rastreado, já tinha rodado uma comparação de métodos completa em
+10/07/2026 (`results/rag_comparison/resumo_comparativo_metodos.csv`),
+antes e independente do trabalho desta sessão — mantido em
+`archive/python_query/` como referência histórica; `grid_search` é a
+implementação de referência daqui pra frente.
+
+**Resultado**: `git status` limpo, nenhum arquivo sensível descoberto,
+árvore de trabalho reduzida a código ativo + `archive/` para histórico.
