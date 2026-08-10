@@ -1,5 +1,9 @@
 __pycache__/
 *.pyc
+.venv/
+space/
+spark/
+
 data/
 
 reports/
@@ -11,4 +15,19 @@ results/
 experimentos/
 
 graphrag-visualizer/
+
+# dados de execução/anotação — nunca versionar (contém texto de prontuário real)
+.env
+progresso/
+progresso_grid/
+resultados_grid/
+resultados_avaliacao/
+second/
+
+# saídas de LLM com nome real de paciente no filename
+prompts/query/insight/output/
+
+# artefatos gerados, não código
+visualizacoes/
+.vscode/
 
