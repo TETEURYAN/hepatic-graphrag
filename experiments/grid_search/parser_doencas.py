@@ -131,3 +131,64 @@ def extrai_doenca(resposta: str) -> str:
     if melhor is None:
         return 'nao_identificado'
     return melhor[2]
+
+
+
+# Marcadores de negação/ausência — se aparecerem na mesma linha do termo,
+# a doença NÃO entra no conjunto (evita contar "Hepatite B (ausente)" ou
+# "Esquistossomose — descartada" como predição positiva). Inclui "nr"/"nega"
+# (achado em auditoria: resultado de exame "NR" = não reagente = negativo, e
+# "nega" é a forma mais comum de negação nesses prontuários — v3).
+_MARCADORES_NEGACAO = [
+    'ausente', 'ausencia', 'descartad', 'exclu', 'negativ',
+    'nao confirmad', 'nao evidenciad', 'sem evidencia', 'nao ha evidencia',
+    'negado', 'nao documentad', 'nao presente', 'nega ', 'nego ', 'negou ',
+    r'\bnr\b',
+]
+
+
+def _linha_negada(linha_norm: str) -> bool:
+    return any(re.search(marcador, linha_norm) for marcador in _MARCADORES_NEGACAO)
+
+
+_RESPOSTA_ANCORADA_RE = re.compile(r'<RESPOSTA>(.*?)</RESPOSTA>', re.IGNORECASE | re.DOTALL)
+
+
+def extrai_bloco_ancorado(resposta: str) -> str:
+    """Se a resposta tiver o formato ancorado `<RESPOSTA>...</RESPOSTA>`
+    pedido no prompt v3, devolve só o conteúdo entre as tags — descarta
+    preâmbulo/meta-comentário/discussão que alguns modos (ex.: drift, que
+    faz auto-crítica iterativa) tendem a vazar antes da resposta final.
+    Sem tags (modelo não obedeceu o formato), devolve a resposta inteira."""
+    m = _RESPOSTA_ANCORADA_RE.search(resposta)
+    return m.group(1) if m else resposta
+
+
+def extrai_doencas(resposta: str) -> set[str]:
+    """Extrai TODAS as doenças mencionadas na resposta (versão multilabel).
+
+    Varre linha a linha (a resposta é uma lista, um item por linha, conforme
+    instruído no prompt). Devolve o conjunto de todas as classes encontradas
+    em linhas que NÃO contêm marcador de negação/ausência — assim
+    "Hepatite B (ausente)" não vira uma predição positiva de hepatite B.
+    'nenhuma' nunca entra no conjunto — resposta sem nenhum termo conhecido
+    vira conjunto vazio, com o mesmo significado.
+    """
+    if not resposta:
+        return set()
+
+    resposta = extrai_bloco_ancorado(resposta)
+
+    encontradas = set()
+    for linha in resposta.split('\n'):
+        linha_norm = _normalize(linha)
+        if _linha_negada(linha_norm):
+            continue
+        for termo, classe in _TERMOS_ORDENADOS:
+            if classe == 'nenhuma':
+                continue
+            termo_norm = _normalize(termo)
+            padrao = r'\b' + re.escape(termo_norm) + r'\b'
+            if re.search(padrao, linha_norm):
+                encontradas.add(classe)
+    return encontradas
