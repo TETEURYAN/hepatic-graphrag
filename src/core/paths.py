@@ -62,6 +62,12 @@ DATASET_ANONIMIZADO = _env_path("DATASET_ANONIMIZADO", REPO_ROOT / "data" / "col
 GROUND_TRUTH_CSV = _env_path("GROUND_TRUTH_CSV", REPO_ROOT / "progresso" / "ground_truth_anotado.csv")
 ANOTACAO_PROGRESSO = _env_path("ANOTACAO_PROGRESSO", REPO_ROOT / "progresso" / "anotacao_progresso.json")
 
+# Candidatos à expansão do ground truth (filtro regex + crivo LLM sobre os
+# prontuários fora do ground truth original — ver experiments/ground_truth_expansion/)
+CANDIDATOS_EXPANSAO_GT = _env_path(
+    "CANDIDATOS_EXPANSAO_GT", REPO_ROOT / "progresso" / "candidatos_expansao_amostra_estratificada.json"
+)
+
 # ── Datasets construídos por build_datasets.py — sem default fixo, porque o
 # nome inclui timestamp; defina no .env depois de cada rodada ─────────────
 DATASET_TUNED_CSV = _env_path(

@@ -2,7 +2,10 @@
 Script de Anotação Interativa — Ground Truth Multirrótulo → Single-label
 =========================================================================
 Fluxo:
-  1. Carrega os 145 prontuários identificados pelo GraphRAG
+  1. Carrega os candidatos de duas fontes (se disponíveis): os 145 originais
+     identificados pela extração de entidades do GraphRAG, e os candidatos de
+     expansão (filtro regex + crivo LLM sobre o resto do corpus — ver
+     experiments/ground_truth_expansion/)
   2. Para cada prontuário, exibe o texto original e o que o sistema extraiu
   3. Você anota quais das 8 doenças estão presentes (0/1)
   4. Aplica hierarquia causal para definir a doença principal (single-label)
@@ -24,8 +27,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from src.core.dataset.clinical_text import (  # noqa: E402
+    carrega_texto_por_prontuario,
+    normaliza_prontuario_id,
+)
 from src.core.paths import (  # noqa: E402
     ANOTACAO_PROGRESSO,
+    CANDIDATOS_EXPANSAO_GT,
     CSV_ORIGINAL,
     DATASET_TUNED_CSV,
     GROUND_TRUTH_CSV,
@@ -242,32 +250,53 @@ def get_confianca() -> str:
 
 print("Carregando dados...")
 
-# Prontuários originais
-df_pront = pd.read_csv(CSV_PRONTUARIOS, dtype=str).fillna("")
-df_pront[COL_ID] = df_pront[COL_ID].str.strip()
-texto_por_id = dict(zip(df_pront[COL_ID], df_pront[COL_TEXTO]))
+# Prontuários originais — carrega já normalizando ID (junta variantes
+# "PACIENTE - X" / "X") e concatenando TODOS os atendimentos por paciente
+# (o antigo dict(zip(...)) mostrava só o último atendimento quando havia
+# mais de um sob a mesma chave — ver docs/log_operacoes.md).
+texto_por_id = carrega_texto_por_prontuario(CSV_PRONTUARIOS, COL_ID, COL_TEXTO)
 
-# Dataset GraphRAG
-df_graph = pd.read_csv(CSV_GRAPHRAG, dtype=str).fillna("")
-df_graph["prontuario_id"] = df_graph["prontuario_id"].str.strip()
+# Dataset GraphRAG (candidatos originais, via extração de entidades na indexação).
+# Opcional: é um artefato de build (`build_datasets.py`) que pode não existir
+# mais localmente — nesse caso, segue só com os candidatos de expansão abaixo.
+sistema_por_pront = {}
+candidatos_graphrag = []
+if CSV_GRAPHRAG.exists():
+    df_graph = pd.read_csv(CSV_GRAPHRAG, dtype=str).fillna("")
+    df_graph["prontuario_id"] = df_graph["prontuario_id"].apply(normaliza_prontuario_id)
+    df_graph["classe"] = df_graph["condicao_normalizada"].str.upper().str.strip().map(MAPA_NORMALIZACAO)
+    df_graph_match = df_graph[df_graph["classe"].notna()]
 
-# Identifica os 145 prontuários com doença prioritária
-df_graph["classe"] = df_graph["condicao_normalizada"].str.upper().str.strip().map(MAPA_NORMALIZACAO)
-pront_com_doenca = (
-    df_graph[df_graph["classe"].notna()]
-    ["prontuario_id"]
-    .unique()
-    .tolist()
-)
-pront_com_doenca = sorted(pront_com_doenca)
+    candidatos_graphrag = df_graph_match["prontuario_id"].unique().tolist()
+    sistema_por_pront.update(
+        df_graph_match
+        .groupby("prontuario_id")["condicao_normalizada"]
+        .apply(lambda x: " | ".join(sorted(set(x.str.upper()))))
+        .to_dict()
+    )
+else:
+    print(f"  (candidatos via GraphRAG indisponíveis — {CSV_GRAPHRAG} não existe, pulando)")
 
-# O que o sistema extraiu por prontuário
-sistema_por_pront = (
-    df_graph[df_graph["classe"].notna()]
-    .groupby("prontuario_id")["condicao_normalizada"]
-    .apply(lambda x: " | ".join(sorted(set(x.str.upper()))))
-    .to_dict()
-)
+# Candidatos de expansão (filtro regex + crivo LLM sobre os prontuários fora
+# do ground truth original — ver experiments/ground_truth_expansion/).
+# IDs normalizados aqui também — o JSON de origem pode ter a variante
+# "PACIENTE - X", que precisa bater com a chave normalizada de texto_por_id.
+candidatos_expansao = []
+if CANDIDATOS_EXPANSAO_GT.exists():
+    with open(CANDIDATOS_EXPANSAO_GT, "r", encoding="utf-8") as f:
+        expansao = json.load(f)
+    expansao = {normaliza_prontuario_id(pid): doencas for pid, doencas in expansao.items()}
+    candidatos_expansao = list(expansao.keys())
+    for pid, doencas in expansao.items():
+        rotulo = " | ".join(sorted(LABELS[d].upper() for d in doencas))
+        if pid in sistema_por_pront:
+            sistema_por_pront[pid] += f" || EXPANSÃO: {rotulo}"
+        else:
+            sistema_por_pront[pid] = f"EXPANSÃO: {rotulo}"
+else:
+    print(f"  (candidatos de expansão indisponíveis — {CANDIDATOS_EXPANSAO_GT} não existe, pulando)")
+
+pront_com_doenca = sorted(set(candidatos_graphrag) | set(candidatos_expansao))
 
 # =============================================================================
 # LOOP DE ANOTAÇÃO

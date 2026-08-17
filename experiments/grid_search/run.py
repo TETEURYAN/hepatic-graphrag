@@ -54,6 +54,7 @@ from src.core.paths import (  # noqa: E402
 bootstrap_sys_path(Path(__file__).resolve().parent)
 
 from parser_doencas import DOENCAS_VALIDAS, extrai_doenca  # noqa: E402
+from src.core.dataset.clinical_text import carrega_texto_por_prontuario  # noqa: E402
 from src.core.query.progress import ProgressTracker  # noqa: E402
 from src.core.query.runner import default_timeout, run_graphrag_query  # noqa: E402
 
@@ -99,16 +100,9 @@ gt = pd.read_csv(GROUND_TRUTH, dtype=str).fillna("")
 gt["prontuario_id"] = gt["prontuario_id"].str.strip()
 lista_prontuarios = gt["prontuario_id"].tolist()
 
-# Textos originais
-df_orig = pd.read_csv(CSV_ORIGINAL, dtype=str).fillna("")
-df_orig[COL_ID] = df_orig[COL_ID].str.strip()
-
-# Agrega textos por prontuário (pode ter múltiplas consultas)
-texto_por_id = (
-    df_orig.groupby(COL_ID)[COL_TEXTO]
-    .apply(lambda x: "\n--- Atendimento ---\n".join(x.tolist()))
-    .to_dict()
-)
+# Textos originais — normaliza ID (junta variantes "PACIENTE - X" / "X") e
+# agrega TODOS os atendimentos por prontuário.
+texto_por_id = carrega_texto_por_prontuario(CSV_ORIGINAL, COL_ID, COL_TEXTO)
 
 print(f"Ground truth   : {len(gt)} prontuários")
 print(f"Textos carregados : {len(texto_por_id)}")
