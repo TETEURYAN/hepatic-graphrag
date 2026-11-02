@@ -18,14 +18,30 @@ graphrag-visualizer/
 
 # dados de execução/anotação — nunca versionar (contém texto de prontuário real)
 .env
+.env.*
 progresso/
 progresso_grid/
 resultados_grid/
+resultados_grid_*/
 resultados_avaliacao/
 second/
+tcc-results-01/
 
 # saídas de LLM com nome real de paciente no filename
 prompts/query/insight/output/
+
+# dados de conta pessoal (uso/custo da API) — nunca versionar
+openrouter_activity_*.csv
+
+# material de referência/estudo, não faz parte do código do projeto
+exemplos de dissertações/
+escrita-step-by-step/
+
+# repositórios git próprios (tesis/apresentação), geridos fora deste repo —
+# não são submodules aqui ainda; ver docs/log_operacoes.md antes de mudar isso
+/ufal-tesis/
+/ufal-presentation-tesis/
+/ufal-presentation-template/
 
 # artefatos gerados, não código
 visualizacoes/
