@@ -53,6 +53,21 @@ SISTEMAS = [
     {"id": "S8", "method": "drift", "community_level": 2},
 ]
 
+# Colunas de rótulo multilabel do ground truth (uma flag binária por doença).
+# `doenca_prevista` ainda é single-label (o prompt atual pede só 1 doença por
+# vez), então cada predição vira um conjunto de 0 ou 1 rótulo até o prompt/
+# parser serem migrados para multilabel de fato.
+CLASSES_MULTILABEL = [
+    "cirrose_hepatica",
+    "esquistossomose",
+    "hepatite_c",
+    "hepatite_b",
+    "esteatose_hepatica",
+    "hipertensao_portal",
+    "hemorragia_digestiva_alta",
+    "pbe",
+]
+
 print("✔ Configuração carregada.")
 
 # %% [markdown]
@@ -134,7 +149,7 @@ if dfs:
         aggfunc="first",
     ).reset_index()
 
-    gt_merge = gt[["prontuario_id", "doenca_principal"]]
+    gt_merge = gt[["prontuario_id", "doenca_principal"] + CLASSES_MULTILABEL]
     df_pivot = df_pivot.merge(gt_merge, on="prontuario_id", how="left")
     df_pivot.to_csv(OUTPUT_DIR / "pivot_sistemas.csv", index=False, encoding="utf-8-sig")
     print(f"Pivot salvo: {df_pivot.shape}")
@@ -143,19 +158,38 @@ else:
     print("Nenhum resultado disponível ainda.")
 
 # %% [markdown]
-# ## Célula 4 — Métricas por sistema
+# ## Célula 4 — Métricas por sistema (multilabel)
+#
+# O ground truth é multilabel por natureza (8 flags de doença por
+# prontuário, independentes de `doenca_principal`). A predição de cada
+# sistema ainda é single-label — o prompt atual pede só 1 doença — então,
+# até o prompt/parser serem migrados, cada predição vira um conjunto com 0
+# (não identificado/sem texto/nenhuma) ou 1 rótulo. As métricas abaixo já
+# usam a formulação multilabel (`MultiLabelBinarizer` + métricas de
+# `sklearn.metrics` para multirrótulo) para que nada precise mudar quando as
+# predições passarem a ser de fato multilabel.
 
 # %%
-from sklearn.metrics import accuracy_score, cohen_kappa_score, f1_score, matthews_corrcoef
+from sklearn.metrics import accuracy_score, f1_score, hamming_loss, jaccard_score
+from sklearn.preprocessing import MultiLabelBinarizer
 
 
-def bootstrap_f1(y_true, y_pred, n=5000):
+def rotulos_verdadeiros(row) -> set:
+    return {c for c in CLASSES_MULTILABEL if row.get(c) == "1"}
+
+
+def rotulos_previstos(valor) -> set:
+    v = (valor or "").strip()
+    return {v} if v in CLASSES_MULTILABEL else set()
+
+
+def bootstrap_f1_multilabel(Y_true, Y_pred, average="macro", n=5000):
     scores = []
-    yt, yp = np.array(y_true), np.array(y_pred)
+    n_linhas = Y_true.shape[0]
     for _ in range(n):
-        idx = np.random.choice(len(yt), len(yt), replace=True)
+        idx = np.random.choice(n_linhas, n_linhas, replace=True)
         try:
-            scores.append(f1_score(yt[idx], yp[idx], average="macro", zero_division=0))
+            scores.append(f1_score(Y_true[idx], Y_pred[idx], average=average, zero_division=0))
         except Exception:
             pass
     return np.percentile(scores, [2.5, 97.5])
@@ -166,38 +200,42 @@ colunas_sistemas = []
 
 if "df_pivot" in dir() and len(df_pivot) > 0:
     df_eval = df_pivot[df_pivot["doenca_principal"] != "nenhuma"].copy()
-    y_true = df_eval["doenca_principal"].tolist()
+
+    mlb = MultiLabelBinarizer(classes=CLASSES_MULTILABEL)
+    Y_true = mlb.fit_transform(df_eval.apply(rotulos_verdadeiros, axis=1).tolist())
 
     colunas_sistemas = [s["id"] for s in SISTEMAS if s["id"] in df_pivot.columns]
 
     for sid in colunas_sistemas:
         cfg = next(s for s in SISTEMAS if s["id"] == sid)
-        y_pred = df_eval[sid].fillna("nao_identificado").tolist()
+        Y_pred = mlb.transform(df_eval[sid].fillna("").apply(rotulos_previstos).tolist())
 
-        acc = accuracy_score(y_true, y_pred)
-        f1m = f1_score(y_true, y_pred, average="macro", zero_division=0)
-        f1w = f1_score(y_true, y_pred, average="weighted", zero_division=0)
-        kappa = cohen_kappa_score(y_true, y_pred)
-        mcc = matthews_corrcoef(y_true, y_pred)
-        ic = bootstrap_f1(y_true, y_pred)
+        hamming = hamming_loss(Y_true, Y_pred)
+        exact_match = accuracy_score(Y_true, Y_pred)  # subset accuracy nativa p/ indicadores multilabel
+        f1_mic = f1_score(Y_true, Y_pred, average="micro", zero_division=0)
+        f1_mac = f1_score(Y_true, Y_pred, average="macro", zero_division=0)
+        jaccard = jaccard_score(Y_true, Y_pred, average="samples", zero_division=0)
+        ic = bootstrap_f1_multilabel(Y_true, Y_pred, average="macro")
 
         resultados_metricas.append({
             "Sistema": sid,
             "Modo": cfg["method"],
             "Community Level": cfg["community_level"],
-            "Accuracy": round(acc, 4),
-            "F1 macro": round(f1m, 4),
-            "F1 weighted": round(f1w, 4),
-            "Cohen's Kappa": round(kappa, 4),
-            "MCC": round(mcc, 4),
-            "F1 IC 2.5%": round(ic[0], 4),
-            "F1 IC 97.5%": round(ic[1], 4),
+            "N": len(df_eval),
+            "Hamming Loss": round(hamming, 4),
+            "Exact Match": round(exact_match, 4),
+            "F1 micro": round(f1_mic, 4),
+            "F1 macro": round(f1_mac, 4),
+            "Jaccard (samples)": round(jaccard, 4),
+            "F1 macro IC 2.5%": round(ic[0], 4),
+            "F1 macro IC 97.5%": round(ic[1], 4),
         })
 
     df_metricas = pd.DataFrame(resultados_metricas).sort_values("F1 macro", ascending=False)
     df_metricas.to_csv(OUTPUT_DIR / "metricas_grid.csv", index=False, encoding="utf-8-sig")
 
-    print("Métricas por sistema (ordenado por F1 macro):\n")
+    print("Métricas multilabel por sistema (ordenado por F1 macro):\n")
+    print("Nota: predições ainda são single-label (0 ou 1 rótulo por prontuário) até a migração do prompt/parser.\n")
     display(df_metricas)
 else:
     print("Execute a célula 3 primeiro.")
@@ -306,34 +344,33 @@ if "df_metricas" in dir() and len(df_metricas) > 0:
 
     ax = axes[0, 0]
     ax.bar(sistemas_labels, df_metricas["F1 macro"], color=cores_barras, edgecolor="white")
-    yerr_low = (df_metricas["F1 macro"] - df_metricas["F1 IC 2.5%"]).tolist()
-    yerr_high = (df_metricas["F1 IC 97.5%"] - df_metricas["F1 macro"]).tolist()
+    yerr_low = (df_metricas["F1 macro"] - df_metricas["F1 macro IC 2.5%"]).tolist()
+    yerr_high = (df_metricas["F1 macro IC 97.5%"] - df_metricas["F1 macro"]).tolist()
     ax.errorbar(sistemas_labels, df_metricas["F1 macro"],
                 yerr=[yerr_low, yerr_high], fmt="none", color="black", capsize=4)
-    ax.set_title("F1 Macro com IC 95% (bootstrap)")
+    ax.set_title("F1 Macro (multilabel) com IC 95% (bootstrap)")
     ax.set_ylabel("F1 macro")
     ax.set_ylim(0, 1.1)
     ax.grid(axis="y", alpha=0.3)
 
     ax = axes[0, 1]
-    ax.bar(sistemas_labels, df_metricas["Accuracy"], color=cores_barras, edgecolor="white")
-    ax.set_title("Accuracy por Sistema")
-    ax.set_ylabel("Accuracy")
+    ax.bar(sistemas_labels, df_metricas["F1 micro"], color=cores_barras, edgecolor="white")
+    ax.set_title("F1 Micro por Sistema")
+    ax.set_ylabel("F1 micro")
     ax.set_ylim(0, 1.1)
     ax.grid(axis="y", alpha=0.3)
 
     ax = axes[1, 0]
-    ax.bar(sistemas_labels, df_metricas["Cohen's Kappa"], color=cores_barras, edgecolor="white")
-    ax.axhline(0, color="gray", linestyle="--", linewidth=1)
-    ax.set_title("Cohen's Kappa por Sistema")
-    ax.set_ylabel("Kappa")
+    ax.bar(sistemas_labels, df_metricas["Hamming Loss"], color=cores_barras, edgecolor="white")
+    ax.set_title("Hamming Loss por Sistema (menor é melhor)")
+    ax.set_ylabel("Hamming Loss")
     ax.grid(axis="y", alpha=0.3)
 
     ax = axes[1, 1]
-    ax.bar(sistemas_labels, df_metricas["MCC"], color=cores_barras, edgecolor="white")
-    ax.axhline(0, color="gray", linestyle="--", linewidth=1)
-    ax.set_title("Matthews Correlation Coefficient (MCC)")
-    ax.set_ylabel("MCC")
+    ax.bar(sistemas_labels, df_metricas["Jaccard (samples)"], color=cores_barras, edgecolor="white")
+    ax.set_title("Jaccard (samples) por Sistema")
+    ax.set_ylabel("Jaccard")
+    ax.set_ylim(0, 1.1)
     ax.grid(axis="y", alpha=0.3)
 
     patches = [mpatches.Patch(color=c, label=m) for m, c in CORES.items()]

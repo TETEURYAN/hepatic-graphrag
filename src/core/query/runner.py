@@ -9,7 +9,9 @@ método (drift precisa de bem mais tempo que local/basic).
 
 from __future__ import annotations
 
+import os
 import re
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -38,6 +40,8 @@ def run_graphrag_query(
     timeout: int | None = None,
     use_patched_runner: bool = False,
     uv_no_sync: bool = True,
+    config: str | Path | None = None,
+    dynamic_community_selection: bool = False,
 ) -> tuple[str, bool, float]:
     """Executa `graphrag query` via subprocess.
 
@@ -49,6 +53,12 @@ def run_graphrag_query(
     em vez de `graphrag` direto — necessário para os métodos global/drift
     contornarem o `response_format=json_object` forçado contra modelos que
     não o suportam (ver `src/core/patches/graphrag_json_patch.py`).
+
+    `config`, se passado, sobrescreve o `settings.yaml` usado (`--config` do
+    CLI) sem tocar no arquivo de produção em `root` — útil pra testar
+    parâmetros de custo (`dynamic_search_threshold`, `drift_k_followups`
+    etc.) num arquivo à parte. `dynamic_community_selection=True` liga
+    `--dynamic-community-selection` (só tem efeito no método `global`).
     """
     if timeout is None:
         timeout = default_timeout(method)
@@ -66,20 +76,41 @@ def run_graphrag_query(
     cmd += ["--root", str(root), "--data", str(data), "--method", method]
     if community_level is not None:
         cmd += ["--community-level", str(community_level)]
+    if config is not None:
+        cmd += ["--config", str(config)]
+    if dynamic_community_selection:
+        cmd += ["--dynamic-community-selection"]
     cmd += ["--response-type", response_type, "--query", query]
 
     inicio = time.time()
     try:
-        resultado = subprocess.run(
+        # `uv run` não faz exec-replace de si mesmo — ele faz fork do processo
+        # real (graphrag/python) como um FILHO SEU, não um substituto. Isso
+        # significa que `subprocess.run(timeout=...)` mata só o "uv" (o filho
+        # direto que ele rastreia); o neto (graphrag/python, quem de fato
+        # ainda está esperando resposta da API) fica órfão e continua rodando
+        # pra sempre — já travou 2 processos por horas neste projeto. Fix:
+        # roda tudo numa sessão/grupo de processo novo (`start_new_session`)
+        # e, no timeout, mata o GRUPO inteiro (`os.killpg`), não só o "uv".
+        processo = subprocess.Popen(
             cmd,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
             encoding="utf-8",
             errors="replace",
+            start_new_session=True,
         )
-    except subprocess.TimeoutExpired:
-        return f"ERROR: query timed out after {timeout}s", False, float(timeout)
+        try:
+            stdout, stderr = processo.communicate(timeout=timeout)
+            returncode = processo.returncode
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(os.getpgid(processo.pid), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            processo.communicate()  # reaproveita o processo (evita zumbi)
+            return f"ERROR: query timed out after {timeout}s", False, float(timeout)
     except FileNotFoundError:
         return "ERROR: 'uv'/'graphrag' não encontrado no PATH", False, round(time.time() - inicio, 1)
     except Exception as exc:  # noqa: BLE001
@@ -87,11 +118,11 @@ def run_graphrag_query(
 
     duracao = round(time.time() - inicio, 1)
 
-    if resultado.returncode != 0:
-        stderr = resultado.stderr.strip()[-800:]
-        return f"ERROR: exit {resultado.returncode} — {stderr}", False, duracao
+    if returncode != 0:
+        stderr_tail = (stderr or "").strip()[-800:]
+        return f"ERROR: exit {returncode} — {stderr_tail}", False, duracao
 
-    stdout = resultado.stdout or ""
+    stdout = stdout or ""
     match = _SUCCESS_RE.search(stdout)
     resposta = match.group(1).strip() if match else stdout.strip()
     return resposta, True, duracao
