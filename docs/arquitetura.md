@@ -1,434 +1,168 @@
 # Documentação de Arquitetura
+
 ## Arquitetura do sistema
 
-Este documento descreve a arquitetura do sistema de anonimização e pré-processamento de prontuários eletrônicos para análise com GraphRAG.
+Este documento descreve a arquitetura **atual** do código de suporte à
+avaliação do GraphRAG como classificador de doença hepática a partir de
+prontuários eletrônicos.
+
+> **Nota histórica:** uma versão anterior deste documento descrevia um
+> pipeline de anonimização e pré-processamento (`src/core/anonymization`,
+> `src/core/preprocess`, um `main.py` de linha de comando). Esse código foi
+> movido para [`archive/anonymization/`](../archive/anonymization/) e não é
+> mais usado pelo pipeline atual — fica preservado só por referência
+> histórica. O conteúdo abaixo descreve o que está em uso hoje.
 
 ## Índice
 
 1. [Visão Geral](#visão-geral)
-2. [Arquitetura de Alto Nível](#arquitetura-de-alto-nível)
-3. [Componentes Principais](#componentes-principais)
-4. [Padrões de Design](#padrões-de-design)
-5. [Fluxo de Dados](#fluxo-de-dados)
-6. [Estrutura de Diretórios](#estrutura-de-diretórios)
-7. [Dependências e Tecnologias](#dependências-e-tecnologias)
-8. [Exemplos de Uso](#exemplos-de-uso)
+2. [`src/core/` — biblioteca compartilhada](#srccore--biblioteca-compartilhada)
+3. [`experiments/` — baterias de avaliação](#experiments--baterias-de-avaliação)
+4. [Fluxo de dados ponta a ponta](#fluxo-de-dados-ponta-a-ponta)
+5. [Dependências e Tecnologias](#dependências-e-tecnologias)
 
 ---
 
 ## Visão Geral
 
-O sistema é composto por dois núcleos principais:
+O sistema é composto por dois núcleos:
 
-1. **Núcleo de Anonimização** (`src/core/anonymization`): Responsável por carregar, validar e anonimizar dados de prontuários eletrônicos
-2. **Núcleo de Pré-processamento** (`src/core/preprocess`): Transforma dados anonimizados em formato compatível com GraphRAG
+1. **`src/core/`**: biblioteca compartilhada — caminhos configuráveis,
+   normalização/carregamento de texto clínico, construção do *ground
+   truth*, execução de *queries* no GraphRAG e hotfixes (`patches/`) para o
+   pacote `graphrag` de terceiros. É importada por todos os experimentos,
+   nunca o contrário.
+2. **`experiments/`**: baterias de avaliação independentes entre si, cada
+   uma com seu próprio `README.md`. Usam `src/core/` para evitar duplicar
+   lógica de normalização de dados e execução de *query*, mas não dependem
+   umas das outras.
 
-A arquitetura segue princípios de **Separação de Responsabilidades (SRP)** e utiliza o padrão **Facade** para simplificar a interface de uso.
-
----
-
-## Arquitetura de Alto Nível
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      main.py                                 │
-│              (Interface de Linha de Comando)                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-        ┌──────────────┴──────────────┐
-        │                             │
-┌───────▼────────┐          ┌─────────▼──────────┐
-│  Anonymization │          │   Preprocessing    │
-│    Feature     │          │   (GraphRAG)       │
-│   (Facade)     │          │                    │
-└───────┬────────┘          └─────────┬──────────┘
-        │                             │
-        │                             │
-┌───────▼─────────────────────────────▼──────────┐
-│         Componentes Especializados             │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │  Loader  │  │ Validator│  │   NLP    │    │
-│  └──────────┘  └──────────┘  └──────────┘    │
-│  ┌──────────┐  ┌──────────┐                  │
-│  │ Explorer │  │ Reporter │                  │
-│  └──────────┘  └──────────┘                  │
-└───────────────────────────────────────────────┘
-```
+Não há um único `main.py` ou interface de linha de comando unificada — cada
+experimento é um ponto de entrada próprio, documentado no seu `README.md`.
 
 ---
 
-## Componentes Principais
+## `src/core/` — biblioteca compartilhada
 
-### 1. Núcleo de Anonimização (`src/core/anonymization`)
-
-#### 1.1. Facade (`facade.py`)
-
-**Responsabilidade:** Interface principal que orquestra todas as operações de anonimização.
-
-**Classe Principal:** `AnonymizationFeature`
-
-**Métodos Principais:**
-- `load_datasets()`: Carrega todos os CSVs do diretório especificado
-- `validate_descriptions()`: Valida se descrições foram anonimizadas corretamente
-- `validate_anonymization()`: Validação profunda com detecção de entidades e padrões sensíveis
-- `generate_report()`: Gera relatórios em formato TXT
-
-**Padrão:** Facade Pattern - simplifica a interface complexa do subsistema
-
-```python
-class AnonymizationFeature:
-    def __init__(self, data_dir: str = "data")
-    def load_datasets(self) -> dict
-    def validate_descriptions(self, dataset_name: str) -> tuple
-    def validate_anonymization(self, dataset_name: str) -> pd.DataFrame
-    def generate_report(self, df: pd.DataFrame, filename: str) -> str
 ```
+src/core/
+├── paths.py                      # Caminhos padrão, sobrescrevíveis por .env
+├── dataset/
+│   ├── clinical_text.py          # Normalização de ID + agregação de texto por prontuário
+│   └── split_dataset.py          # CSV bruto (1 linha/atendimento) -> 1 .txt por prontuário (input/ do GraphRAG)
+├── ground_truth/
+│   └── annotate.py               # Anotação interativa (segunda opinião humana)
+├── query/
+│   ├── runner.py                 # `graphrag query` via subprocess (timeout, kill de órfão, --config, --dynamic-community-selection)
+│   └── progress.py               # Cache de progresso resumível (bateria longa de queries)
+└── patches/
+    ├── litelm_patch.py                   # Silencia warning de cleanup assíncrono do litellm
+    ├── graphrag_json_patch.py            # Remove response_format=json_object forçado (map/primer), sem tocar no resto
+    ├── reasoning_effort_patch.py         # Desliga de fato o raciocínio do modelo (settings.yaml não tem efeito via OpenRouter)
+    ├── batch_report_embeddings_patch.py  # 1 consulta em lote ao LanceDB em vez de N sequenciais (drift)
+    ├── run_graphrag.py                   # Entry point que aplica os patches acima antes de `graphrag query`
+    └── run_graphrag_debug.py             # Mesma coisa + log verboso do litellm + dump periódico de pilha (diagnóstico)
+```
+
+**`paths.py`** centraliza todo caminho de índice/dataset/saída usado pelos
+experimentos — nenhum script deve hardcodar um caminho absoluto. Os
+defaults assumem a convenção de pastas deste repositório (ver
+`experimentos/` nas instruções de configuração), mas qualquer um pode ser
+sobrescrito via `.env`.
+
+**`dataset/clinical_text.py`** resolve uma inconsistência da fonte de dados:
+o CSV bruto tem dois formatos de ID para o mesmo prontuário (`"10001436"` e
+`"PACIENTE - 10001436"`). `carrega_texto_por_prontuario()` normaliza o ID e
+concatena cronologicamente todos os atendimentos de um mesmo paciente num
+único texto — usado por todo experimento que precisa do texto completo de
+um prontuário.
+
+**`query/runner.py`** é o único ponto que chama `graphrag query` via
+subprocess em todo o repositório. Resolve dois problemas reais encontrados
+durante o trabalho: `uv run` não substitui o processo (faz fork), então
+matar só o processo pai no timeout deixa o neto (o `graphrag`/`python` que
+de fato está esperando a API) órfão rodando para sempre — por isso roda tudo
+num grupo de processo novo e mata o grupo inteiro no timeout.
+
+**`patches/`** existe porque o pacote `graphrag` (dependência externa,
+`graphrag>=2.7.0`) tem bugs e incompatibilidades reais com o roteamento via
+OpenRouter e com modelos de raciocínio híbrido, documentados no docstring de
+cada patch. `run_graphrag.py` é o *entry point* que os aplica antes de
+delegar para `graphrag.__main__`; qualquer script que precise desses
+hotfixes chama `run_graphrag_query(..., use_patched_runner=True)` em vez de
+`graphrag query` diretamente.
 
 ---
 
-#### 1.2. Loader (`loader/data_loader.py`)
+## `experiments/` — baterias de avaliação
 
-**Responsabilidade:** Carregamento e normalização de arquivos CSV.
-
-**Função Principal:** `load_all_csvs()`
-
-**Funcionalidades:**
-- Detecção automática de separadores (`,` ou `;`)
-- Normalização de nomes de colunas (lowercase, substituição de espaços por `_`)
-- Suporte a múltiplos arquivos CSV
-- Tratamento de erros de encoding
-
-**Características:**
-- Normalização automática de colunas (remove caracteres especiais, converte para lowercase)
-- Detecção inteligente de separadores
-- Retorna dicionário `{nome_arquivo: DataFrame}` ou DataFrame concatenado
-
-```python
-def load_all_csvs(
-    data_dir: str = "data",
-    concat: bool = False,
-    normalize_cols: bool = True
-) -> dict | pd.DataFrame
 ```
+experiments/
+├── grid_search/                    # Comparação dos 8 sistemas (4 modos x 2 community-levels)
+│   ├── run.py                      # Roda a bateria completa (depende do resto do repo)
+│   ├── standalone_grid_multilabel.py  # Mesma bateria, script único e autocontido (PEP 723, roda sem clonar o repo)
+│   ├── analyze.py                  # Lê os resultados salvos e calcula métricas
+│   ├── parser_doencas.py           # Parser determinístico resposta-livre -> classes (multilabel)
+│   ├── gera_tabela_metricas.py     # Figura final: tabela de métricas por sistema
+│   ├── gera_matrizes_confusao.py   # Figura final: matrizes de confusão por doença
+│   ├── plota_subgrafo_paciente.py  # Subgrafo de entidades/relações de 1 paciente
+│   ├── gera_todos_subgrafos.py     # Idem, em lote pra todos os prontuários + análise agregada
+│   ├── plota_acertos_erros_drift.py  # Figura final: dispersão acerto/erro do drift por tamanho de texto
+│   └── adhoc/                      # Scripts de investigação pontual -- ver adhoc/README.md
+├── ground_truth_expansion/         # Funil de triagem textual + triagem por LLM (amplia a amostra anotável)
+├── ground_truth_second_opinion/    # Segunda opinião via LLM (anotador cego, comparação com a anotação manual)
+└── prompt_tuning_comparison/       # Compara baseline vs. prompt-tuning na extração de entidades
+```
+
+Cada subpasta tem seu próprio `README.md` com o passo a passo de reprodução.
+A distinção entre a raiz de `grid_search/` e `grid_search/adhoc/` é: a raiz
+é o caminho que reproduz os resultados reportados (a bateria dos 8 sistemas
+e as figuras finais); `adhoc/` são scripts que responderam perguntas
+pontuais levantadas durante a análise (por que o `drift` erra/acerta em tal
+caso, se tal ajuste de parâmetro resolve tal problema de custo/timeout) —
+não fazem parte do caminho de reprodução principal, mas ficam versionados
+para rastreabilidade.
 
 ---
 
-#### 1.3. NLP (`nlp/entity_cleaner.py`)
-
-**Responsabilidade:** Remoção de nomes próprios usando Processamento de Linguagem Natural.
-
-**Classe Principal:** `EntityCleaner`
-
-**Tecnologia:** spaCy com modelo `pt_core_news_sm` (NER - Named Entity Recognition)
-
-**Funcionalidades:**
-- Identificação de entidades do tipo `PER` (Pessoa)
-- Remoção de nomes próprios de textos
-- Processamento de colunas individuais ou múltiplos datasets
-
-**Métodos:**
-- `_remove_person_names(text: str) -> str`: Remove nomes próprios de um texto
-- `clean_column(df, column: str) -> pd.DataFrame`: Limpa uma coluna específica
-- `clean_multiple(datasets: dict, column: str) -> dict`: Processa múltiplos datasets
-
-```python
-class EntityCleaner:
-    def __init__(self, model: str = "pt_core_news_sm")
-    def clean_column(self, df: pd.DataFrame, column: str) -> pd.DataFrame
-    def clean_multiple(self, datasets: dict, column: str) -> dict
-```
-
----
-
-#### 1.4. Validator (`validator/`)
-
-##### 1.4.1. `description_matcher.py`
-
-**Responsabilidade:** Validação básica de anonimização verificando se a coluna `descricao_anonimizada` contém o padrão `<nome anonimizado>`.
-
-**Classe:** `DescriptionMatcher`
-
-**Métodos:**
-- `find_mismatches(df) -> List[int]`: Retorna índices de linhas inválidas
-- `sample_mismatches(df, n: int) -> pd.DataFrame`: Retorna amostras de problemas
-
-**Lógica:** Uma linha é inválida se `descricao_anonimizada` não contém `<nome anonimizado>`
-
----
-
-##### 1.4.2. `anonymization_validator.py`
-
-**Responsabilidade:** Validação profunda de anonimização com detecção avançada.
-
-**Classe:** `AnonymizationValidator`
-
-**Funcionalidades:**
-- **Fuzzy Matching:** Detecta nomes mesmo com variações (ex: "Maria" vs "M a r i a")
-- **Detecção de Entidades:** Identifica entidades residuais (PER, LOC, ORG) usando spaCy
-- **Padrões Sensíveis:** Detecta CPF, telefones, datas usando regex
-- **Normalização:** Remove acentos e pontuação para comparação
-
-**Métodos:**
-- `normalize(text: str) -> str`: Normaliza texto para comparação
-- `fuzzy_match(nome: str, texto: str, threshold: float) -> tuple`: Busca fuzzy de nomes
-- `contains_sensitive_patterns(text: str) -> bool`: Verifica padrões sensíveis
-- `validate(df: pd.DataFrame) -> pd.DataFrame`: Executa validação completa
-
-**Padrões Sensíveis Detectados:**
-- Datas: `\d{2}/\d{2}/\d{4}`
-- CPF: `\d{3}\.\d{3}\.\d{3}-\d{2}`
-- Telefones: `\d{2}\s?\d{4,5}-\d{4}`
-- Números longos: `\d{6,}`
-
-```python
-class AnonymizationValidator:
-    def __init__(self, cleaner: EntityCleaner)
-    def validate(self, df: pd.DataFrame) -> pd.DataFrame
-    def fuzzy_match(self, nome: str, texto: str, threshold: float = 0.85) -> tuple
-    def contains_sensitive_patterns(self, text: str) -> bool
-```
-
----
-
-#### 1.5. Explorer (`explorer/explorer.py`)
-
-**Responsabilidade:** Exploração e visualização de dados.
-
-**Classe:** `DatasetExplorer`
-
-**Funcionalidades:**
-- Exibição de informações básicas do dataset (número de registros, colunas)
-- Amostragem de dados para análise rápida
-
-**Métodos:**
-- `show_samples(df, column: str, n: int, label: str)`: Exibe amostras de uma coluna
-- `show_info(df, name: str)`: Exibe informações básicas do dataset
-
----
-
-#### 1.6. Report (`report/report_generator.py`)
-
-**Responsabilidade:** Geração de relatórios em formato TXT.
-
-**Classe:** `ReportGenerator`
-
-**Métodos:**
-- `save_logs(logs: list, filename: str) -> str`: Salva lista de logs em TXT
-- `save_dataframe(df: pd.DataFrame, filename: str) -> str`: Salva DataFrame em formato TSV (TXT)
-
-**Formato de Saída:** Arquivos `.txt` com separador tabular (TSV)
-
----
-
-#### 1.7. Exceptions (`exceptions.py`)
-
-**Responsabilidade:** Definição de exceções customizadas.
-
-**Hierarquia de Exceções:**
-```
-AnonymizationError (base)
-├── MissingColumnError
-└── EmptyDatasetError
-```
-
-**Uso:** Permite tratamento de erros específicos e informativos
-
----
-
-### 2. Núcleo de Pré-processamento (`src/core/preprocess`)
-
-#### 2.1. Preprocessor (`preprocess.py`)
-
-**Responsabilidade:** Transformar dados anonimizados em formato compatível com GraphRAG.
-
-**Classe:** `GraphRAGPreprocessor`
-
-**Funcionalidades:**
-- Gera arquivos de texto individuais a partir da coluna `descricao_anonimizada`
-- Cria estrutura de diretórios esperada pelo GraphRAG (`input/texts/`)
-- Gera arquivo de metadados (`metadata.csv`) com informações sobre os documentos
-
-**Estrutura Gerada:**
-```
-input/
-├── texts/
-│   ├── doc_00001.txt
-│   ├── doc_00002.txt
-│   └── ...
-└── metadata.csv
-```
-
-**Métodos:**
-- `__init__(data_dir: str = None, output_dir: str = "graphrag/input", dataframe: pd.DataFrame = None)`
-- `prepare() -> Path`: Processa os dados e gera os arquivos
-
-**Inicialização:**
-- Pode receber um `data_dir` (usa `AnonymizationFeature` para carregar)
-- Ou receber um `dataframe` diretamente
-- Cria automaticamente a estrutura de diretórios
-
-```python
-class GraphRAGPreprocessor:
-    def __init__(
-        self,
-        data_dir: str = None,
-        output_dir: str = "graphrag/input",
-        dataframe: pd.DataFrame = None
-    )
-    def prepare(self) -> Path
-```
-
----
-
-## Fluxo de Dados
-
-### Fluxo 1: Validação de Anonimização
+## Fluxo de dados ponta a ponta
 
 ```
-1. main.py
-   │
-   ├─> AnonymizationFeature.load_datasets()
-   │   └─> DataLoader.load_all_csvs()
-   │       └─> Retorna: dict {nome: DataFrame}
-   │
-   ├─> AnonymizationFeature.validate_anonymization()
-   │   ├─> AnonymizationValidator.validate()
-   │   │   ├─> EntityCleaner (para detecção de entidades)
-   │   │   ├─> fuzzy_match() (detecção de nomes)
-   │   │   └─> contains_sensitive_patterns() (regex)
-   │   │
-   │   └─> Retorna: DataFrame com problemas encontrados
-   │
-   └─> AnonymizationFeature.generate_report()
-       └─> ReportGenerator.save_dataframe()
-           └─> Arquivo .txt gerado
-```
-
-### Fluxo 2: Pré-processamento para GraphRAG
-
-```
-1. main.py
-   │
-   ├─> AnonymizationFeature.load_datasets()
-   │   └─> DataLoader.load_all_csvs()
-   │       └─> Retorna: dict {nome: DataFrame}
-   │
-   ├─> GraphRAGPreprocessor(dataframe=df)
-   │   └─> GraphRAGPreprocessor.prepare()
-   │       ├─> Para cada linha do DataFrame:
-   │       │   ├─> Extrai 'descricao_anonimizada'
-   │       │   └─> Salva em input/texts/doc_XXXXX.txt
-   │       │
-   │       └─> Gera metadata.csv
-   │
-   └─> Estrutura pronta para graphrag index
-```
-
----
-
-## Estrutura de Diretórios
-
-```
-src/
-└── core/
-    ├── anonymization/
-    │   ├── __init__.py
-    │   ├── facade.py              # Interface principal (Facade)
-    │   ├── exceptions.py          # Exceções customizadas
-    │   ├── README.md              # Documentação do módulo
-    │   │
-    │   ├── loader/
-    │   │   ├── __init__.py
-    │   │   └── data_loader.py     # Carregamento de CSVs
-    │   │
-    │   ├── nlp/
-    │   │   ├── __init__.py
-    │   │   └── entity_cleaner.py  # Limpeza de entidades (spaCy)
-    │   │
-    │   ├── validator/
-    │   │   ├── __init__.py
-    │   │   ├── description_matcher.py      # Validação simples
-    │   │   └── anonymization_validator.py  # Validação avançada
-    │   │
-    │   ├── explorer/
-    │   │   ├── __init__.py
-    │   │   └── explorer.py        # Exploração de dados
-    │   │
-    │   └── report/
-    │       ├── __init__.py
-    │       └── report_generator.py # Geração de relatórios
-    │
-    └── preprocess/
-        ├── __init__.py
-        └── preprocess.py          # Pré-processamento para GraphRAG
+data/coluna-evolucoes_anonimizadas.csv  (1 linha por atendimento)
+        │
+        ▼  src/core/dataset/split_dataset.py
+input/*.txt  (1 documento por prontuário)
+        │
+        ▼  graphrag index  (fora deste repositório; ver graphrag_config/)
+experimentos/local copy/output/*.parquet  (grafo, comunidades, resumos)
+        │
+        ▼  experiments/grid_search/run.py  (ou standalone_grid_multilabel.py)
+        │     para cada prontuário x sistema: monta o prompt, chama
+        │     src/core/query/runner.py (graphrag query), salva a resposta bruta
+        │
+        ▼  experiments/grid_search/parser_doencas.py
+        │     resposta em texto livre -> conjunto de classes positivas
+        │
+        ▼  experiments/grid_search/analyze.py
+métricas por sistema/classe, matrizes de confusão, tabelas e gráficos finais
 ```
 
 ---
 
 ## Dependências e Tecnologias
 
-### Dependências Principais
+Gerenciadas por `uv` a partir de `pyproject.toml`/`uv.lock` (não usar
+`pip install` nem `scripts/requirements.txt`, que está desatualizado e
+cobre só o utilitário de visualização em `scripts/`).
 
-| Biblioteca | Versão | Uso |
-|------------|--------|-----|
-| `pandas` | - | Manipulação de dados tabulares |
-| `spacy` | >=3.8.7 | Processamento de linguagem natural |
-| `pt_core_news_sm` | - | Modelo spaCy para português (NER) |
-
-### Dependências Internas
-
-```
-AnonymizationFeature
-├── DataLoader
-├── DescriptionMatcher
-├── AnonymizationValidator
-│   └── EntityCleaner (spaCy)
-├── DatasetExplorer
-└── ReportGenerator
-
-GraphRAGPreprocessor
-└── AnonymizationFeature (opcional, se usar data_dir)
-```
-
-### Tecnologias Utilizadas
-
-- **Python 3.10+**: Linguagem principal
-- **spaCy**: Framework de NLP para detecção de entidades
-- **pandas**: Manipulação e análise de dados
-- **GraphRAG**: Sistema de RAG baseado em grafos (uso externo)
+| Biblioteca | Uso |
+|---|---|
+| `graphrag` | Implementação oficial Microsoft do GraphRAG (dependência avaliada, não escrita por este projeto) |
+| `pandas`, `numpy` | Manipulação de dados tabulares |
+| `scipy` | Testes estatísticos (McNemar, Mann-Whitney, qui-quadrado) |
+| `matplotlib`, `networkx` | Figuras e visualização de grafo |
+| `python-dotenv` | Carregamento de `.env` |
 
 ---
 
-## Diagrama de Sequência - Validação
-
-```
-main.py          AnonymizationFeature    DataLoader    AnonymizationValidator    EntityCleaner
-  │                        │                 │                  │                      │
-  │──load_datasets()──────>│                 │                  │                      │
-  │                        │──load_all_csvs()│                  │                      │
-  │                        │<───DataFrames───│                  │                      │
-  │<───datasets────────────│                 │                  │                      │
-  │                        │                 │                  │                      │
-  │──validate_anonymization()───────────────>│                  │                      │
-  │                        │                 │                  │                      │
-  │                        │                 │                  │──validate()──────────>│
-  │                        │                 │                  │                      │
-  │                        │                 │                  │<──nlp_model───────────│
-  │                        │                 │                  │                      │
-  │                        │                 │                  │──fuzzy_match()───────>│
-  │                        │                 │                  │                      │
-  │                        │                 │                  │──contains_patterns()─>│
-  │                        │                 │                  │                      │
-  │                        │                 │                  │<───results────────────│
-  │<───results─────────────│                 │                  │                      │
-  │                        │                 │                  │                      │
-  │──generate_report()────>│                 │                  │                      │
-  │                        │──save_dataframe()                  │                      │
-  │<───report_path─────────│                 │                  │                      │
-```
-
-
----
-
-**Última atualização:** 2025-01-12
-
+**Última atualização:** 2026-11-02

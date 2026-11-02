@@ -10,7 +10,7 @@
     </td>
     <td valign="center" style="padding-left: 20px;">
       <p>Pipeline que avalia o <a href="https://github.com/microsoft/graphrag"><strong>GraphRAG</strong></a> (implementação oficial da Microsoft) como classificador da doença hepática principal de um paciente a partir de prontuários eletrônicos anonimizados. Cada prontuário vira um documento indexado num grafo de conhecimento; a doença é obtida perguntando ao índice e extraindo o diagnóstico da resposta em texto livre do LLM.</p>
-      <p>Dois eixos são avaliados contra um ground truth anotado manualmente (141 prontuários): o <strong>método de busca</strong> do GraphRAG (<code>basic</code>/<code>local</code>/<code>global</code>/<code>drift</code>, em dois níveis de comunidade) e o efeito do <strong>prompt-tuning</strong> na etapa de indexação (extração de entidades e relatórios de comunidade).</p>
+      <p>Dois eixos são avaliados contra um ground truth multirrótulo anotado manualmente (537 prontuários, oito doenças hepáticas): o <strong>método de busca</strong> do GraphRAG (<code>basic</code>/<code>local</code>/<code>global</code>/<code>drift</code>, em dois níveis de comunidade) e o efeito do <strong>prompt-tuning</strong> na etapa de indexação (extração de entidades e relatórios de comunidade).</p>
     </td>
   </tr>
 </table>

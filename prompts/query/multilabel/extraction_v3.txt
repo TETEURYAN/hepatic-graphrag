@@ -1,0 +1,19 @@
+Abaixo estão as evoluções/anamneses de um único paciente, extraídas do prontuário eletrônico (nº {pront_id}). Com base EXCLUSIVAMENTE nesse conteúdo (usando seu conhecimento médico geral apenas para interpretá-lo), quais das doenças hepáticas abaixo estão CLARAMENTE documentadas como PRESENTES nesse paciente (diagnóstico explícito, exame de imagem/laboratorial confirmatório sem ressalva, ou estadiamento formal LITERALMENTE citado no texto)? Considere tanto a doença de base quanto suas complicações, se ambas estiverem documentadas (ex.: esquistossomose E a hipertensão portal decorrente dela, se as duas estiverem descritas).
+
+IMPORTANTE sobre resultados de exame: resultados como 'NR', 'não reagente', 'negativo', 'NDN' ou 'normal' indicam AUSÊNCIA da condição testada, não presença — NÃO liste a doença nesse caso (ex.: 'Anti-HCV: NR' significa que o paciente NÃO tem hepatite C). NÃO liste doenças que o paciente negou, que foram apenas mencionadas em discussão/diferencial sem confirmação, que foram investigadas com resultado negativo, ou que foram descartadas/excluídas no texto — liste SOMENTE as que estão confirmadas como presentes. NÃO liste uma doença só porque o texto menciona risco, probabilidade ou fator de risco para ela (ex.: 'risco elevado de PBE' ou 'epidemiologia positiva para esquistossomose' NÃO são confirmação — são apenas risco/exposição, sem diagnóstico). Para hemorragia digestiva alta e PBE especificamente: só conta se for sangramento/peritonite ATIVO ou muito recente, não episódio antigo já resolvido (ex.: 'HDA há alguns anos' ou 'episódio prévio' NÃO contam).
+
+ATENÇÃO a três confusões comuns — evite-as:
+1) Hemorragia digestiva ALTA é sangramento de esôfago/estômago/duodeno (ex.: varizes esofágicas rotas, úlcera péptica sangrante) — NÃO é sangramento baixo/retal (ex.: hemorroida, fissura anal, sangramento nas fezes de origem colorretal). Não confunda os dois.
+2) 'Hipertensão portal' é pressão elevada especificamente no sistema venoso porta (sinais: varizes esofágicas, esplenomegalia, ascite, circulação colateral, dilatação/trombose da veia porta) — é TOTALMENTE DIFERENTE de 'hipertensão arterial'/pressão arterial (PA, ex.: 'PA 140x90mmHg'). Não liste hipertensão portal só porque o texto menciona pressão arterial elevada ou hipertensão arterial sistêmica (HAS) sem nenhum sinal específico de hipertensão portal.
+3) NÃO cite nem infira escores de estadiamento (Child-Pugh, MELD, FIB-4 etc.) que não estejam literalmente escritos no texto com o valor exato — nunca estime ou calcule um escore que o texto não apresenta explicitamente. NÃO use achados de outros sistemas/órgãos sem relação hepática direta (ex.: megaesôfago chagásico, doenças biliares isoladas, cistos, achados ósseos ou pulmonares) como evidência de doença hepática, a menos que o texto estabeleça explicitamente essa relação causal.
+
+Lista de doenças possíveis: {doencas}.
+
+Responda EXATAMENTE neste formato, sem nenhum texto antes ou depois das tags (sem preâmbulo, sem análise, sem conclusão):
+<RESPOSTA>
+[uma doença por linha, no formato 'NOME DA DOENÇA: trecho curto do texto que confirma isso' — NOME DA DOENÇA deve ser EXATAMENTE um dos nomes da lista acima, escrito literalmente como está nela (ex.: 'Esquistossomose', não 'esquistossomose hepatoesplênica' ou qualquer variação/sinônimo) — ou apenas 'Nenhuma' se nenhuma doença da lista estiver claramente documentada como presente]
+</RESPOSTA>
+
+--- PRONTUÁRIO {pront_id} ---
+{texto}
+--- FIM DO PRONTUÁRIO {pront_id} ---
