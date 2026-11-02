@@ -1,9 +1,9 @@
 # grid_search
 
 Compara 8 configurações do GraphRAG (4 métodos de busca × 2 community-levels)
-como classificador da doença hepática principal de cada prontuário, contra o
-ground truth anotado manualmente (`progresso/ground_truth_anotado.csv`, 141
-prontuários).
+como classificador multirrótulo de oito doenças hepáticas por prontuário,
+contra o ground truth anotado manualmente
+(`progresso/ground_truth_segunda_opiniao.csv`, 537 prontuários).
 
 | Sistema | Método | Community Level |
 |---|---|---|
@@ -36,8 +36,8 @@ busca em si.
 - Um índice GraphRAG já construído (`graphrag index`) — por padrão em
   `experimentos/local copy/` (ajustável via env vars `GRAPHRAG_ROOT` /
   `GRAPHRAG_DATA`, já que `experimentos/` é local e nunca versionado).
-- `progresso/ground_truth_anotado.csv` com as colunas `prontuario_id` e
-  `doenca_principal`.
+- `progresso/ground_truth_segunda_opiniao.csv` com a coluna `prontuario_id`
+  e uma coluna binária (`0`/`1`) por doença em `parser_doencas.CLASSES`.
 - `.env` com `GRAPHRAG_API_KEY` (ver `.env.example`).
 
 ## Como rodar
@@ -75,6 +75,12 @@ na raiz do repositório.
 - `parser_doencas.py`: extrai a classe de doença da resposta em texto livre
   do LLM. Compartilhado entre `run.py` e `analyze.py` para garantir que a
   mesma lógica seja aplicada dos dois lados.
+- `gera_tabela_metricas.py`, `gera_matrizes_confusao.py`,
+  `plota_acertos_erros_drift.py`, `plota_subgrafo_paciente.py`,
+  `gera_todos_subgrafos.py`: geram as figuras finais usadas no relatório, a
+  partir dos resultados já salvos — não fazem nenhuma *query* nova.
+- `adhoc/`: scripts de investigação pontual (não fazem parte do caminho de
+  reprodução dos resultados principais) — ver `adhoc/README.md`.
 
 ## Nota histórica
 
@@ -84,3 +90,11 @@ em `archive/python_query/analyse.py`, com resultados já publicados em
 `results/rag_comparison/` (10/07/2026). Foi mantida como referência
 histórica, mas `grid_search` é a implementação de referência a partir de
 agora — é a que teve o bug do parser corrigido e é ativamente mantida.
+
+**Nota de reprodutibilidade:** `run.py`/`analyze.py` ainda fazem extração
+*single-label* (pedem 1 doença por prontuário), enquanto
+`standalone_grid_multilabel.py` já é multirrótulo de verdade e foi o
+script que de fato gerou os resultados publicados no TCC — ou seja, o
+caminho "oficial" documentado acima não reproduz hoje os números
+publicados. A migração de `run.py`/`analyze.py` para multirrótulo está
+em andamento (ver PR dedicado).
