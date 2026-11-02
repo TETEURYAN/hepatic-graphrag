@@ -144,11 +144,51 @@ _MARCADORES_NEGACAO = [
     'nao confirmad', 'nao evidenciad', 'sem evidencia', 'nao ha evidencia',
     'negado', 'nao documentad', 'nao presente', 'nega ', 'nego ', 'negou ',
     r'\bnr\b',
+    # frase de negação que não batia com nenhum marcador acima (achado em
+    # auditoria -- ex.: prontuário 1505692, "Não há exames ou achados que a
+    # confirmem (não está documentada como presente)" virava falso positivo
+    # de esquistossomose porque nenhum marcador cobria essa frase)
+    'nao ha .{0,40}que .{0,15}confirm', 'nao esta documentad',
+    # mais duas frases de negação achadas na mesma auditoria (prontuário
+    # 1047554): "Não consta episódio ativo..." e "Não há relato de..." --
+    # viravam falso positivo de hemorragia_digestiva_alta e pbe porque
+    # nenhum marcador cobria essas frases tambem
+    'nao consta', 'nao ha relato',
 ]
+
+# "Carga viral negativa/indetectável" de HEPATITE B (PCR-HBV, HBV-DNA) é
+# marcador de RESPOSTA AO TRATAMENTO num paciente já diagnosticado -- a
+# terapia de hepatite B crônica (entecavir/tenofovir) é SUPRESSORA, não
+# curativa: o paciente continua tendo a doença mesmo com carga viral
+# indetectável. Sem essa exceção, o marcador genérico 'negativ' descartava
+# linhas com diagnóstico real e evidência sólida só por citarem carga viral
+# controlada como dado adicional (achado em auditoria dos erros do drift em
+# S7/S8 -- ex.: prontuário 10133791, "DX HEPATITE B 2007, HBSAG reagente...
+# PCR-HBV ... negativo/não detectável" virava falso negativo de hepatite_b).
+#
+# IMPORTANTE: isso NÃO se aplica a hepatite C -- tratamento com antivirais de
+# ação direta (ex.: Viekira Pak) É curativo (RVS = cura), então "PCR-HCV
+# negativo APÓS tratamento" costuma indicar doença resolvida de verdade, não
+# só controlada -- testado contra caso real onde aplicar a mesma exceção pra
+# HCV criava falso positivo (prontuário 8838732, ground truth sem a doença).
+_RESULTADO_CONTROLADO = r'(negativ\w*|indetect\w*|nao detect\w*)'
+_PADRAO_CARGA_VIRAL_CONTROLADA = re.compile(
+    r'(carga viral.{0,15}hbv|pcr[\s-]?hbv|hbv[\s-]?dna|dna[\s-]?hbv)[^.;]{0,40}?'
+    rf'{_RESULTADO_CONTROLADO}(\s*[/,]\s*{_RESULTADO_CONTROLADO})*'  # ex.: "não detectável/negativo"
+    r'|negativac\w*\s+viral'  # ex.: "em tratamento ... com negativação viral"
+)
+
+
+def _mascara_carga_viral(linha_norm: str) -> str:
+    """Remove menções a carga viral negativa/indetectável antes de checar
+    negação -- isso é marcador de tratamento bem-sucedido num paciente já
+    diagnosticado, não ausência da doença."""
+    return _PADRAO_CARGA_VIRAL_CONTROLADA.sub(' ', linha_norm)
 
 
 def _linha_negada(linha_norm: str) -> bool:
-    return any(re.search(marcador, linha_norm) for marcador in _MARCADORES_NEGACAO)
+    linha_sem_carga_viral = _mascara_carga_viral(linha_norm)
+    return any(re.search(marcador, linha_sem_carga_viral) for marcador in _MARCADORES_NEGACAO)
 
 
 _RESPOSTA_ANCORADA_RE = re.compile(r'<RESPOSTA>(.*?)</RESPOSTA>', re.IGNORECASE | re.DOTALL)
