@@ -59,7 +59,15 @@ CSV_ORIGINAL = _env_path(
 DATASET_ANONIMIZADO = _env_path("DATASET_ANONIMIZADO", REPO_ROOT / "data" / "coluna-evolucoes_anonimizadas.csv")
 
 # ── Ground truth ───────────────────────────────────────────────────────────
-GROUND_TRUTH_CSV = _env_path("GROUND_TRUTH_CSV", REPO_ROOT / "progresso" / "ground_truth_anotado.csv")
+# `ground_truth_anotado.csv` (141 prontuários) foi o ground truth original,
+# anterior ao funil de expansão (ver experiments/ground_truth_expansion/ e
+# experiments/ground_truth_second_opinion/); `ground_truth_segunda_opiniao.csv`
+# (537 prontuários) é o atual, usado pela rodada final do grid de 8 sistemas.
+# Corrigido aqui para o default bater com o resto do pipeline (2026-11-02) —
+# antes desta correção, `run.py`/`analyze.py` liam o arquivo antigo por
+# padrão enquanto outros scripts já hardcodavam o novo, uma inconsistência
+# silenciosa real.
+GROUND_TRUTH_CSV = _env_path("GROUND_TRUTH_CSV", REPO_ROOT / "progresso" / "ground_truth_segunda_opiniao.csv")
 ANOTACAO_PROGRESSO = _env_path("ANOTACAO_PROGRESSO", REPO_ROOT / "progresso" / "anotacao_progresso.json")
 
 # Candidatos à expansão do ground truth (filtro regex + crivo LLM sobre os
